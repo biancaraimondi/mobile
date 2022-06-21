@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'POI.dart';
-import 'POITile.dart';
 import 'categoryScreen.dart';
 
 class UserPOIs extends StatefulWidget {

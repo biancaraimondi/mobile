@@ -21,7 +21,11 @@ void main() {
         textTheme: const TextTheme(bodyText2: TextStyle(color: Colors.black)),
       ),
       //home: const SimpleLoginScreen()
-      home: const PersistentTabsDemo()
+      home: const PersistentTabsDemo(),
+      /*routes: {
+        '/login': (context) => const SimpleLoginScreen(),
+        '/userNavigationBar': (context) => Explore(),
+      }*/
   ));
 }
 

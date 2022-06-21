@@ -2,11 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../saved/POITile.dart';
-
 
 class Explore extends StatelessWidget {
   const Explore({Key? key}) : super(key: key);
+
+
+  List<Marker> setMarkers(){
+    List<Marker> markers = [];
+
+    markers.add(Marker(
+        width: 45.0,
+        height: 45.0,
+        point: LatLng(44.4938203, 11.3426327),
+        builder: (ctx) => Container(
+              child: const Icon(
+                  Icons.location_on,
+                  size: 45.0,
+                  color: Colors.red,
+              ),
+        ),
+    ));
+    return markers;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,25 +38,10 @@ class Explore extends StatelessWidget {
             subdomains: ['a', 'b', 'c']
         ),
         MarkerLayerOptions(
-          markers: []
+          markers: setMarkers()
         )
-        /*MarkerLayerOptions(
-          markers: [
-            Marker(
-              width: 45.0,
-              height: 45.0,
-              point: LatLng(44.4938203, 11.3426327),
-              builder: (ctx) => Container(
-                child: Icon(
-                  Icons.location_on,
-                  size: 45.0,
-                  color: Colors.red,
-                ),
-              ),
-            ),
-          ],
-        ),*/
       ],
     );
   }
 }
+

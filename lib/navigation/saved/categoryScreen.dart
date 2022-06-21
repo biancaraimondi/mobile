@@ -38,14 +38,14 @@ class _CategoryScreenState extends State<CategoryScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
-              width: 205,
+              width: MediaQuery.of(context).size.width,
               child: ListView.separated(
-                padding: const EdgeInsets.only(top: 18),
+                padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
                 itemCount: _poiTiles.length,
                 scrollDirection: Axis.vertical,
                 itemBuilder: (_, index) => _poiTiles[index],
                 separatorBuilder: (_, index) => const SizedBox(
-                  height: 24,
+                  height: 5,
                 ),
               ),
             ),
