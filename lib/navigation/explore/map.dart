@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -17,6 +18,9 @@ class _ExploreState extends State<Explore> {
   double _currentRankValue = 5;
   CategoryValues? _currentCategoryValue = CategoryValues.areeVerdi;
   PrivacyValues? _currentPrivacyValue = PrivacyValues.noPrivacy;
+  bool _isDummy = false;
+  bool _isGPS = false;
+  int? _currentPrivacyNumber;
 
    List<Marker> setMarkers(){
     List<Marker> markers = [];
@@ -217,10 +221,29 @@ class _ExploreState extends State<Explore> {
                                                 onChanged: (PrivacyValues? value) {
                                                   state(() {
                                                     _currentPrivacyValue = value;
+                                                    _isDummy = true;
+                                                    _isGPS = false;
                                                   });
                                                 },
                                               ),
                                             ),
+                                            if (_isDummy)
+                                              Padding(
+                                                  padding: const EdgeInsets.all(8.0),
+                                                  child: TextField(
+                                                    keyboardType: TextInputType.number,
+                                                    inputFormatters: <TextInputFormatter>[
+                                                      FilteringTextInputFormatter.digitsOnly
+                                                    ],
+                                                    onChanged: (text) {
+                                                      _currentPrivacyNumber = int.parse(text);
+                                                    },
+                                                    decoration: const InputDecoration(
+                                                      border: OutlineInputBorder(),
+                                                      labelText: 'Numero di dummy update',
+                                                    ),
+                                                  )
+                                              ),
                                             ListTile(
                                               title: const Text('GPS Perturbation'),
                                               leading: Radio<PrivacyValues>(
@@ -229,10 +252,29 @@ class _ExploreState extends State<Explore> {
                                                 onChanged: (PrivacyValues? value) {
                                                   state(() {
                                                     _currentPrivacyValue = value;
+                                                    _isDummy = false;
+                                                    _isGPS = true;
                                                   });
                                                 },
                                               ),
                                             ),
+                                            if (_isGPS)
+                                              Padding(
+                                                  padding: const EdgeInsets.all(8.0),
+                                                  child: TextField(
+                                                    keyboardType: TextInputType.number,
+                                                    inputFormatters: <TextInputFormatter>[
+                                                      FilteringTextInputFormatter.digitsOnly
+                                                    ],
+                                                    onChanged: (text) {
+                                                      _currentPrivacyNumber = int.parse(text);
+                                                    },
+                                                    decoration: const InputDecoration(
+                                                      border: OutlineInputBorder(),
+                                                      labelText: 'Numero di perturbation digits',
+                                                    ),
+                                                  )
+                                              ),
                                             ListTile(
                                               title: const Text('No Privacy'),
                                               leading: Radio<PrivacyValues>(
@@ -241,10 +283,12 @@ class _ExploreState extends State<Explore> {
                                                 onChanged: (PrivacyValues? value) {
                                                   state(() {
                                                     _currentPrivacyValue = value;
+                                                    _isDummy = false;
+                                                    _isGPS = false;
                                                   });
                                                 },
                                               ),
-                                            )
+                                            ),
                                           ],
                                         )
                                     )
