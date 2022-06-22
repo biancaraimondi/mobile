@@ -28,6 +28,7 @@ class Explore extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        /*
         appBar: AppBar(
           actions: <Widget>[
             TextButton(
@@ -63,21 +64,74 @@ class Explore extends StatelessWidget {
             )
           ],
         ),
-        body: FlutterMap(
-          options: MapOptions(
-            center: LatLng(44.4938203, 11.3426327),
-            zoom: 13.5,
-          ),
-          layers: [
-            TileLayerOptions(
-                urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                subdomains: ['a', 'b', 'c']
-            ),
-            MarkerLayerOptions(
-              markers: setMarkers()
-            )
-          ],
-        ),
+         */
+        body: SizedBox(
+          child: Stack(
+            children: <Widget>[
+              FlutterMap(
+                options: MapOptions(
+                  center: LatLng(44.4938203, 11.3426327),
+                  zoom: 13.5,
+                ),
+                layers: [
+                  TileLayerOptions(
+                      urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                      subdomains: ['a', 'b', 'c']
+                  ),
+                  MarkerLayerOptions(
+                      markers: setMarkers()
+                  )
+                ],
+              ),
+              Align(
+                alignment: const FractionalOffset(0.05, 0.07),
+                child: FloatingActionButton.extended(
+                  onPressed: () {
+                    // Add your onPressed code here!
+                  },
+                  label: const Text("Rank", style: TextStyle(color: Colors.white)),
+                  //icon: const Icon(Icons.more_vert),
+                  backgroundColor: const Color(0xff30475e),
+                ),
+              ),
+              Align(
+                alignment: const FractionalOffset(0.45, 0.07),
+                child: FloatingActionButton.extended(
+                  onPressed: () {
+                    // Add your onPressed code here!
+                  },
+                  label: const Text("Categoria", style: TextStyle(color: Colors.white)),
+                  //icon: const Icon(Icons.more_vert),
+                  backgroundColor: const Color(0xff30475e),
+                ),
+              ),
+              Align(
+                alignment:  const FractionalOffset(0.95, 0.07),
+                child: FloatingActionButton.extended(
+                  onPressed: () {
+                    // Add your onPressed code here!
+                  },
+                  label: const Text("Privacy", style: TextStyle(color: Colors.white)),
+                  //icon: const Icon(Icons.more_vert),
+                  backgroundColor: const Color(0xff30475e),
+                ),
+              ),
+              Align(
+                alignment:  const FractionalOffset(0.45, 0.99),
+                child: FloatingActionButton.extended(
+                  onPressed: () {
+                    // Add your onPressed code here!
+                  },
+                  label: const Text("Effettua una ricerca in quest'area", style: TextStyle(color: Colors.white)),
+                  icon: const Icon(Icons.search),
+                  backgroundColor: const Color(0xff30475e),
+                ),
+              ),
+            ],
+          )
+        )
+
+        /*
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () {
@@ -87,6 +141,7 @@ class Explore extends StatelessWidget {
           icon: const Icon(Icons.search),
           backgroundColor: Color(0xff30475e),
         ),
+         */
     );
   }
 }

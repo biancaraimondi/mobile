@@ -16,6 +16,7 @@ void main() {
         colorScheme: ColorScheme.fromSwatch().copyWith(
           primary: const Color(0xfff05454),
           secondary: const Color(0xff30475e),
+          brightness: Brightness.light
         ),
         //scaffoldBackgroundColor: const Color(0xfff05454),
         textTheme: const TextTheme(bodyText2: TextStyle(color: Colors.black)),
