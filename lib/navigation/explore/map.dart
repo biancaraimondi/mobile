@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../main.dart';
+
 enum CategoryValues { areeVerdi, bar, musei }
 enum PrivacyValues { dummyUpdate, GPSPerturbation, noPrivacy}
 
@@ -22,65 +24,28 @@ class _ExploreState extends State<Explore> {
   bool _isGPS = false;
   int? _currentPrivacyNumber;
 
-   List<Marker> setMarkers(){
-    List<Marker> markers = [];
-
-    markers.add(Marker(
+  final Marker _markerTest = Marker(
         width: 45.0,
         height: 45.0,
         point: LatLng(44.4938203, 11.3426327),
-        builder: (ctx) => Container(
-              child: const Icon(
-                  Icons.location_on,
-                  size: 45.0,
-                  color: Color(0xff30475e),
-              ),
+        builder: (ctx) => const Icon(
+          Icons.location_on,
+          size: 45.0,
+          color: Color(0xff30475e),
         ),
-    ));
+  );
+
+  List<Marker> setMarkers(List<Marker> markers){
+    if (markers.isNotEmpty) {
+      markers.add(markers[0]);
+    }
+    markers.add(_markerTest);
     return markers;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        /*
-        appBar: AppBar(
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return SimpleDialog(
-                        title: const Text('Select assignment'),
-                        children: <Widget>[
-                          SimpleDialogOption(
-                            onPressed: () {  },
-                            child: const Text('Treasury department'),
-                          ),
-                          SimpleDialogOption(
-                            onPressed: () { },
-                            child: const Text('State department'),
-                          ),
-                        ],
-                      );
-                    }
-                );
-              },
-              child: const Text('Rank', style: TextStyle(color: Colors.white)),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: const Text('Categoria', style: TextStyle(color: Colors.white)),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: const Text('Privacy', style: TextStyle(color: Colors.white)),
-            )
-          ],
-        ),
-         */
-        body: SizedBox(
+    return SizedBox(
           child: Stack(
             children: <Widget>[
               FlutterMap(
@@ -94,13 +59,15 @@ class _ExploreState extends State<Explore> {
                       subdomains: ['a', 'b', 'c']
                   ),
                   MarkerLayerOptions(
-                      markers: setMarkers()
+                      key: exploreKey,
+                      markers: setMarkers([])
                   )
                 ],
               ),
               Align(
                 alignment: const FractionalOffset(0.05, 0.07),
                 child: FloatingActionButton.extended(
+                  heroTag: "rank",
                   onPressed: () {
                     showDialog(
                         context: context,
@@ -119,7 +86,6 @@ class _ExploreState extends State<Explore> {
                                     onChanged: (val) {
                                       state(() {
                                         _currentRankValue = val;
-                                        //debugPrint('movieTitle: $val');
                                       });
                                     },
                                   ),
@@ -131,13 +97,13 @@ class _ExploreState extends State<Explore> {
                     );
                   },
                   label: const Text("Rank", style: TextStyle(color: Colors.white)),
-                  //icon: const Icon(Icons.more_vert),
                   backgroundColor: const Color(0xff30475e),
                 ),
               ),
               Align(
                 alignment: const FractionalOffset(0.45, 0.07),
                 child: FloatingActionButton.extended(
+                  heroTag: "categoria",
                   onPressed: () {
                     showDialog(
                         context: context,
@@ -195,19 +161,19 @@ class _ExploreState extends State<Explore> {
                     );
                   },
                   label: const Text("Categoria", style: TextStyle(color: Colors.white)),
-                  //icon: const Icon(Icons.more_vert),
                   backgroundColor: const Color(0xff30475e),
                 ),
               ),
               Align(
                 alignment:  const FractionalOffset(0.95, 0.07),
                 child: FloatingActionButton.extended(
+                  heroTag: "privacy",
                   onPressed: () {
                     showDialog(
                         context: context,
                         builder: (BuildContext context) {
                           return SimpleDialog(
-                              title: const Text('Seleziona la categoria'),
+                              title: const Text('Seleziona la privacy'),
                               children: <Widget>[
                                 StatefulBuilder(
                                     builder: (context, state) => Center(
@@ -299,36 +265,11 @@ class _ExploreState extends State<Explore> {
                     );
                   },
                   label: const Text("Privacy", style: TextStyle(color: Colors.white)),
-                  //icon: const Icon(Icons.more_vert),
                   backgroundColor: const Color(0xff30475e),
                 ),
-              ),
-              /*Align(
-                alignment:  const FractionalOffset(0.45, 0.99),
-                child: FloatingActionButton.extended(
-                  onPressed: () {
-                    // Add your onPressed code here!
-                  },
-                  label: const Text("Effettua una ricerca in quest'area", style: TextStyle(color: Colors.white)),
-                  icon: const Icon(Icons.search),
-                  backgroundColor: const Color(0xff30475e),
-                ),
-              ),*/
+              )
             ],
           )
-        )
-
-        /*
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            // Add your onPressed code here!
-          },
-          label: const Text("Effettua una ricerca in quest'area"),
-          icon: const Icon(Icons.search),
-          backgroundColor: Color(0xff30475e),
-        ),
-         */
     );
   }
 }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/navigation/userNavigationBar.dart';
 
-import 'POI.dart';
+import 'package:mobile/navigation/userNavigationBar.dart';
+import '../../main.dart';
+import '../../models/POI.dart';
 
 class POITile extends StatefulWidget {
   const POITile({required this.poi, Key? key}) : super(key: key);
@@ -17,8 +18,12 @@ class _POITileState extends State<POITile> {
   POI get poi => widget.poi;
 
   void _pushScreen() {
-    final dynamic navigationBar = globalKey.currentWidget;
-    navigationBar.onTap(0);
+    final dynamic explore = exploreKey.currentWidget;
+    print(explore);
+    //explore.markers([poi]);
+    final dynamic bottomBar = bottomBarKey.currentWidget;
+    bottomBar.onTap(0);
+
   }
 
   bool _isFavorited = true;
@@ -50,7 +55,6 @@ class _POITileState extends State<POITile> {
             icon: _isFavorited
                 ? Icon(Icons.favorite, color: Theme.of(context).colorScheme.secondary)
                 : Icon(Icons.favorite_border, color: Theme.of(context).colorScheme.secondary)
-            //Icon(Icons.favorite, color: Theme.of(context).colorScheme.secondary),
           ),
         ),
     );

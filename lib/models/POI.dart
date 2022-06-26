@@ -7,9 +7,18 @@ class POI {
   final Position position;
   final int rank;
 
-  POI(
+  const POI(
       {required this.id,
         required this.type,
         required this.position,
         required this.rank});
+
+  factory POI.fromJson(Map<String, dynamic> json) {
+    return POI(
+      id: json['id'],
+      type: json['type'],
+      position: json['position'],
+      rank: json['rank'],
+    );
+  }
 }

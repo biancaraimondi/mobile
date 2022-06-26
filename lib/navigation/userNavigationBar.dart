@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/navigation/saved/Position.dart';
 import 'package:mobile/navigation/saved/userPOIs.dart';
 import 'package:mobile/navigation/explore/map.dart';
 
 
-/// Keeps the state of each tab even as you navigate through routes. This is done by creating a new navigator for each [screenWidget] given.
-///
-/// [screenWidgets] should be a list of Widgets where each Widget contains its own `Scaffold`.
-///
-/// `PersistentTabs` is commonly used with a `BottomNavigationBar` for iOS style navigation.
-
-GlobalKey globalKey = GlobalKey(debugLabel: 'btm_app_bar');
+GlobalKey userPOIsKey = GlobalKey<NavigatorState>();
+GlobalKey bottomBarKey = GlobalKey<NavigatorState>();
 
 class PersistentTabs extends StatelessWidget {
   const PersistentTabs(
@@ -19,14 +13,18 @@ class PersistentTabs extends StatelessWidget {
   final int? currentTabIndex;
   final List<Widget> screenWidgets;
 
-  List<Widget> _buildOffstageWidgets() {
+  List<Widget> _buildOffstageWidgets(context) {
     return screenWidgets
         .map(
           (w) => Offstage(
         offstage: currentTabIndex != screenWidgets.indexOf(w),
         child: Navigator(
+        /*initialRoute: '/',
+        onGenerateRoute: RouteGenerator.generateRoute,*/
           onGenerateRoute: (routeSettings) {
-            return MaterialPageRoute(builder: (_) => w);
+            return MaterialPageRoute(
+                builder: (_) => w
+            );
           },
         ),
       ),
@@ -37,7 +35,7 @@ class PersistentTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Stack(
-      children: _buildOffstageWidgets(),
+      children: _buildOffstageWidgets(context),
     );
   }
 }
@@ -73,7 +71,7 @@ class _PersistentTabsDemoState extends State<PersistentTabsDemo> {
         screenWidgets: const [Explore(), UserPOIs()],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        key: globalKey,
+        key: bottomBarKey,
         onTap: setCurrentIndex,
         currentIndex: currentTabIndex!,
         items: const [

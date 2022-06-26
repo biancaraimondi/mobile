@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'POI.dart';
+import '../../models/POI.dart';
 import 'POITile.dart';
-import 'Position.dart';
+import '../../models/Position.dart';
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({required this.category, Key? key}) : super(key: key);
@@ -63,37 +63,37 @@ List<POI> pois = [
   POI(
     id: "areeVerdi1",
     type: areeVerdi,
-    position: Position(44.4822181, 11.3526779),
+    position: Position(latitude: 44.4822181, longitude: 11.3526779),
     rank: 1,
   ),
   POI(
       id: "areeVerdi2",
       type: areeVerdi,
-      position: Position(44.4822181, 11.352677),
+      position: Position(latitude: 44.4822181, longitude: 11.352677),
       rank: 2,
   ),
   POI(
       id: "bar1",
       type: bar,
-      position: Position(44.4822181, 11.352677),
+      position: Position(latitude: 44.4822181, longitude: 11.352677),
       rank: 1,
   ),
   POI(
     id: "bar2",
     type: bar,
-    position: Position(44.4822181, 11.352677),
+    position: Position(latitude: 44.4822181, longitude: 11.352677),
     rank: 2,
   ),
   POI(
     id: "musei1",
     type: musei,
-    position: Position(44.4822181, 11.352677),
+    position: Position(latitude: 44.4822181, longitude: 11.352677),
     rank: 1,
   ),
   POI(
       id: "musei2",
       type: musei,
-      position: Position(44.4822181, 11.352677),
+      position: Position(latitude: 44.4822181, longitude: 11.352677),
       rank: 2,
   )
 ];
