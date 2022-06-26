@@ -69,31 +69,31 @@ List<POI> pois = [
   POI(
       id: "areeVerdi2",
       type: areeVerdi,
-      position: Position(latitude: 44.4822181, longitude: 11.352677),
+      position: Position(latitude: 44.49, longitude: 11.352677),
       rank: 2,
   ),
   POI(
       id: "bar1",
       type: bar,
-      position: Position(latitude: 44.4822181, longitude: 11.352677),
+      position: Position(latitude: 44.50, longitude: 11.352677),
       rank: 1,
   ),
   POI(
     id: "bar2",
     type: bar,
-    position: Position(latitude: 44.4822181, longitude: 11.352677),
+    position: Position(latitude: 44.51, longitude: 11.352677),
     rank: 2,
   ),
   POI(
     id: "musei1",
     type: musei,
-    position: Position(latitude: 44.4822181, longitude: 11.352677),
+    position: Position(latitude: 44.52, longitude: 11.352677),
     rank: 1,
   ),
   POI(
       id: "musei2",
       type: musei,
-      position: Position(latitude: 44.4822181, longitude: 11.352677),
+      position: Position(latitude: 44.53, longitude: 11.352677),
       rank: 2,
   )
 ];

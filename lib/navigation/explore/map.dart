@@ -49,6 +49,7 @@ class _ExploreState extends State<Explore> {
           child: Stack(
             children: <Widget>[
               FlutterMap(
+                key: exploreKey,
                 options: MapOptions(
                   center: LatLng(44.4938203, 11.3426327),
                   zoom: 13.5,
@@ -59,10 +60,11 @@ class _ExploreState extends State<Explore> {
                       subdomains: ['a', 'b', 'c']
                   ),
                   MarkerLayerOptions(
-                      key: exploreKey,
+                      //key: exploreKey,
                       markers: setMarkers([])
                   )
                 ],
+                mapController: MapController(),
               ),
               Align(
                 alignment: const FractionalOffset(0.05, 0.07),

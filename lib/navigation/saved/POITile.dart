@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import 'package:mobile/navigation/userNavigationBar.dart';
 import '../../main.dart';
@@ -19,8 +21,24 @@ class _POITileState extends State<POITile> {
 
   void _pushScreen() {
     final dynamic explore = exploreKey.currentWidget;
-    print(explore);
-    //explore.markers([poi]);
+    print('explore: $explore');
+    var newMarker = Marker(
+        width: 45.0,
+        height: 45.0,
+        point: LatLng(poi.position.latitude, poi.position.longitude),
+        builder: (ctx) => const Icon(
+          Icons.location_on,
+          size: 45.0,
+          color: Color(0xfff05454),
+        )
+    );
+    explore.layers[1].markers.add(newMarker);
+    explore.mapController.move(
+        LatLng(poi.position.latitude, poi.position.longitude),
+        14.0
+    );
+    //explore.options.onTap;
+
     final dynamic bottomBar = bottomBarKey.currentWidget;
     bottomBar.onTap(0);
 

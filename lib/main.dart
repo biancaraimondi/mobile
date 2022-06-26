@@ -22,7 +22,7 @@ void main() {
       //home: const SimpleLoginScreen()
       //home: const PersistentTabsDemo(),
       //initialRoute: '/login',
-      initialRoute: '/',
+      initialRoute: '/userNavigationBar',
       onGenerateRoute: RouteGenerator.generateRoute,
           /*(routeSettings) {
           switch(routeSettings.name) {
