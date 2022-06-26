@@ -4,11 +4,14 @@
   ----------
   lib/screens/simple_login.dart
   lib/screens/persistent_tabs.dart
+  lib/screens/ecommerce
+
+  https://docs.flutter.dev/development/ui/widgets/material
 */
 
 import 'package:flutter/material.dart';
-import 'package:mobile/RouteGenerator.dart';
-GlobalKey exploreKey = GlobalKey<NavigatorState>();
+import 'package:mobile/route_generator.dart';
+
 void main() {
   runApp(MaterialApp(
       theme: ThemeData(
@@ -19,29 +22,8 @@ void main() {
         ),
         textTheme: const TextTheme(bodyText2: TextStyle(color: Colors.black)),
       ),
-      //home: const SimpleLoginScreen()
-      //home: const PersistentTabsDemo(),
-      //initialRoute: '/login',
+      //initialRoute: '/',
       initialRoute: '/userNavigationBar',
       onGenerateRoute: RouteGenerator.generateRoute,
-          /*(routeSettings) {
-          switch(routeSettings.name) {
-            case '/login':
-              return MaterialPageRoute(
-                  settings: const RouteSettings(name: "/login"),
-                  builder: (_) => const SimpleLoginScreen()
-              );
-            case '/explore':
-              return MaterialPageRoute(
-                settings: const RouteSettings(name: "/explore"),
-                builder: (_) => const Explore(),
-              );
-          }
-      }*/
-      /*routes: {
-        '/login': (context) => const SimpleLoginScreen(),
-        '/explore': (context) => const Explore(),
-      }*/
   ));
 }
-

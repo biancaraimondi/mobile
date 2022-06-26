@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'categoryScreen.dart';
-
 class UserPOIs extends StatefulWidget {
   const UserPOIs({Key? key}) : super(key: key);
 
   @override
-  _UserPOIsState createState() => _UserPOIsState();
+  State<UserPOIs> createState() => _UserPOIsState();
 }
 
 class _UserPOIsState extends State<UserPOIs> {
@@ -21,7 +19,7 @@ class _UserPOIsState extends State<UserPOIs> {
         children: [
           const SizedBox(height: 16),
           CategoryTile(
-            imageUrl: "res/areeVerdi.jpg",
+            imageUrl: "res/aree_verdi.jpg",
             category: areeVerdi,
             imageAlignment: Alignment.topCenter,
           ),
@@ -52,18 +50,12 @@ class CategoryTile extends StatelessWidget {
   final String imageUrl;
   final String category;
 
-  /// Which part of the image to prefer
   final Alignment imageAlignment;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => _pushScreen(
-        context: context,
-        screen: CategoryScreen(
-          category: category,
-        ),
-      ),
+      onTap: () => Navigator.of(context).pushNamed('/category', arguments: category),
       child: Container(
         height: 200,
         decoration: BoxDecoration(
@@ -83,7 +75,6 @@ class CategoryTile extends StatelessWidget {
                   category.toUpperCase(),
                   style: Theme.of(context).textTheme.headline4!.copyWith(
                     color: Colors.white,
-                    //backgroundColor: Colors.black.withOpacity(.5),
                     background: Paint()
                       ..color = Colors.black.withOpacity(.5)
                   ),
@@ -96,24 +87,6 @@ class CategoryTile extends StatelessWidget {
   }
 }
 
-
-
-void _pushScreen({required BuildContext context, required Widget screen}) {
-  ThemeData themeData = Theme.of(context);
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => Theme(data: themeData, child: screen),
-    ),
-  );
-}
-
-
-
-
 String areeVerdi = "Aree Verdi";
 String bar = "Bar e Ristoranti";
 String musei = "Musei";
-
-
-//https://flutterui.design/components/ecommerce

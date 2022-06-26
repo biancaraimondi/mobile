@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../../models/POI.dart';
-import 'POITile.dart';
-import '../../models/Position.dart';
+import '../../models/poi.dart';
+import 'poi_tile.dart';
+import '../../models/position.dart';
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({required this.category, Key? key}) : super(key: key);
   final String category;
 
   @override
-  _CategoryScreenState createState() => _CategoryScreenState();
+  State<CategoryScreen> createState() => _CategoryScreenState();
 }
 
 class _CategoryScreenState extends State<CategoryScreen> {
@@ -24,9 +24,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<POITile> _poiTiles =
+    List<POITile> poiTiles =
     _pois.map((p) => POITile(poi: p)).toList();
-    return _poiTiles.isEmpty
+    return poiTiles.isEmpty
         ? const SizedBox.shrink()
         :
     Scaffold(
@@ -41,9 +41,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
               width: MediaQuery.of(context).size.width,
               child: ListView.separated(
                 padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
-                itemCount: _poiTiles.length,
+                itemCount: poiTiles.length,
                 scrollDirection: Axis.vertical,
-                itemBuilder: (_, index) => _poiTiles[index],
+                itemBuilder: (_, index) => poiTiles[index],
                 separatorBuilder: (_, index) => const SizedBox(
                   height: 5,
                 ),

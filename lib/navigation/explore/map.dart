@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../main.dart';
+GlobalKey exploreKey = GlobalKey<NavigatorState>();
 
 enum CategoryValues { areeVerdi, bar, musei }
 enum PrivacyValues { dummyUpdate, GPSPerturbation, noPrivacy}
@@ -12,7 +12,7 @@ class Explore extends StatefulWidget {
   const Explore({Key? key}) : super(key: key);
 
   @override
-  _ExploreState createState() => _ExploreState();
+  State<Explore> createState() => _ExploreState();
 }
 
 class _ExploreState extends State<Explore> {
@@ -24,22 +24,23 @@ class _ExploreState extends State<Explore> {
   bool _isGPS = false;
   int? _currentPrivacyNumber;
 
-  final Marker _markerTest = Marker(
-        width: 45.0,
-        height: 45.0,
-        point: LatLng(44.4938203, 11.3426327),
-        builder: (ctx) => const Icon(
-          Icons.location_on,
-          size: 45.0,
-          color: Color(0xff30475e),
-        ),
-  );
+  List<Marker> setMarkers(){
+    Marker markerTest = Marker(
+          width: 45.0,
+          height: 45.0,
+          point: LatLng(44.4938203, 11.3426327),
+          builder: (ctx) => Icon(
+            Icons.location_on,
+            size: 45.0,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+    );
 
-  List<Marker> setMarkers(List<Marker> markers){
-    if (markers.isNotEmpty) {
-      markers.add(markers[0]);
-    }
-    markers.add(_markerTest);
+    List<Marker> markers = [markerTest];
+
+    //TODO richiesta di markers al server
+    //markers.add(markers[0]);
+
     return markers;
   }
 
@@ -60,8 +61,7 @@ class _ExploreState extends State<Explore> {
                       subdomains: ['a', 'b', 'c']
                   ),
                   MarkerLayerOptions(
-                      //key: exploreKey,
-                      markers: setMarkers([])
+                      markers: setMarkers()
                   )
                 ],
                 mapController: MapController(),
@@ -99,7 +99,7 @@ class _ExploreState extends State<Explore> {
                     );
                   },
                   label: const Text("Rank", style: TextStyle(color: Colors.white)),
-                  backgroundColor: const Color(0xff30475e),
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
                 ),
               ),
               Align(
@@ -163,7 +163,7 @@ class _ExploreState extends State<Explore> {
                     );
                   },
                   label: const Text("Categoria", style: TextStyle(color: Colors.white)),
-                  backgroundColor: const Color(0xff30475e),
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
                 ),
               ),
               Align(
@@ -267,7 +267,7 @@ class _ExploreState extends State<Explore> {
                     );
                   },
                   label: const Text("Privacy", style: TextStyle(color: Colors.white)),
-                  backgroundColor: const Color(0xff30475e),
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
                 ),
               )
             ],

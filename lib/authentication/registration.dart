@@ -1,23 +1,26 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
-import 'formButton.dart';
-import 'inputField.dart';
+import 'access_register_button.dart';
+import 'input_field.dart';
+
+import 'package:http/http.dart' as http;
 
 class SimpleRegisterScreen extends StatefulWidget {
-  /// Callback for when this form is submitted successfully. Parameters are (username, password)
-  final Function(String? email, String? password)? onSubmitted;
 
-  const SimpleRegisterScreen({this.onSubmitted, Key? key}) : super(key: key);
+  //final Function(String? email, String? password)? onSubmitted;
+
+  const SimpleRegisterScreen({/*this.onSubmitted, */Key? key}) : super(key: key);
 
   @override
-  _SimpleRegisterScreenState createState() => _SimpleRegisterScreenState();
+  State<SimpleRegisterScreen> createState() => _SimpleRegisterScreenState();
 }
 
 class _SimpleRegisterScreenState extends State<SimpleRegisterScreen> {
   late String username, password, confirmPassword;
   String? usernameError, passwordError;
-  Function(String? email, String? password)? get onSubmitted =>
-      widget.onSubmitted;
+  //Function(String? email, String? password)? get onSubmitted => widget.onSubmitted;
 
   @override
   void initState() {
@@ -64,11 +67,31 @@ class _SimpleRegisterScreenState extends State<SimpleRegisterScreen> {
     return isValid;
   }
 
-  void submit() {
+  /*void submit() {
     if (validate()) {
       if (onSubmitted != null) {
         onSubmitted!(username, password);
       }
+    }
+  }*/
+
+  Future<void> saveCredentials() async {
+    final response = await http
+        .post(
+      Uri.parse('http://localhost:3001/auth/signup'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'username': username,
+        'password': password,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      //return openNavigation(jsonDecode(response.body)['msg']);
+    } else {
+      throw Exception('Failed to load signup credentials');
     }
   }
 
@@ -129,7 +152,7 @@ class _SimpleRegisterScreenState extends State<SimpleRegisterScreen> {
                   confirmPassword = value;
                 });
               },
-              onSubmitted: (value) => submit(),
+              //onSubmitted: (value) => submit(),
               labelText: "Conferma Password",
               errorText: passwordError,
               obscureText: true,
@@ -140,7 +163,9 @@ class _SimpleRegisterScreenState extends State<SimpleRegisterScreen> {
             ),
             FormButton(
               text: "Registrati",
-              onPressed: submit,
+              onPressed: () => {
+                saveCredentials()
+              }
             ),
             SizedBox(
               height: screenHeight * .125,
@@ -148,14 +173,14 @@ class _SimpleRegisterScreenState extends State<SimpleRegisterScreen> {
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: RichText(
-                text: const TextSpan(
+                text: TextSpan(
                   text: "Registrazione avvenuta con successo, ",
-                  style: TextStyle(color: Colors.black),
+                  style: const TextStyle(color: Colors.black),
                   children: [
                     TextSpan(
                       text: "Accedi",
                       style: TextStyle(
-                        color: Color(0xfff05454),
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

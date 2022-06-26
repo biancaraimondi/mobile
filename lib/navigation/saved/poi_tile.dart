@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import 'package:mobile/navigation/userNavigationBar.dart';
-import '../../main.dart';
-import '../../models/POI.dart';
+import 'package:mobile/navigation/user_navigation_bar.dart';
+import '../../models/poi.dart';
+import '../explore/map.dart';
 
 class POITile extends StatefulWidget {
   const POITile({required this.poi, Key? key}) : super(key: key);
   final POI poi;
 
   @override
-  _POITileState createState() => _POITileState();
+  State<POITile> createState() => _POITileState();
 }
 
 class _POITileState extends State<POITile> {
@@ -20,16 +20,17 @@ class _POITileState extends State<POITile> {
   POI get poi => widget.poi;
 
   void _pushScreen() {
+
+    //add the poi as a marker to the map
     final dynamic explore = exploreKey.currentWidget;
-    print('explore: $explore');
     var newMarker = Marker(
         width: 45.0,
         height: 45.0,
         point: LatLng(poi.position.latitude, poi.position.longitude),
-        builder: (ctx) => const Icon(
+        builder: (ctx) => Icon(
           Icons.location_on,
           size: 45.0,
-          color: Color(0xfff05454),
+          color: Theme.of(context).colorScheme.secondary,
         )
     );
     explore.layers[1].markers.add(newMarker);
@@ -37,11 +38,10 @@ class _POITileState extends State<POITile> {
         LatLng(poi.position.latitude, poi.position.longitude),
         14.0
     );
-    //explore.options.onTap;
 
+    //show the map section
     final dynamic bottomBar = bottomBarKey.currentWidget;
     bottomBar.onTap(0);
-
   }
 
   bool _isFavorited = true;

@@ -4,23 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:mobile/authentication/registration.dart';
 import 'package:http/http.dart' as http;
 
-import '/authentication/formButton.dart';
-import '/authentication/inputField.dart';
+import '/authentication/access_register_button.dart';
+import '/authentication/input_field.dart';
 
 class SimpleLoginScreen extends StatefulWidget {
-  /// Callback for when this form is submitted successfully. Parameters are (username, password)
-  final Function(String? email, String? password)? onSubmitted;
 
-  const SimpleLoginScreen({this.onSubmitted, Key? key}) : super(key: key);
+  //final Function(String? email, String? password)? onSubmitted;
+
+  const SimpleLoginScreen({/*this.onSubmitted,*/ Key? key}) : super(key: key);
   @override
-  _SimpleLoginScreenState createState() => _SimpleLoginScreenState();
+  State<SimpleLoginScreen> createState() => _SimpleLoginScreenState();
 }
 
 class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
   late String username, password;
   String? usernameError, passwordError;
-  Function(String? email, String? password)? get onSubmitted =>
-      widget.onSubmitted;
+  //Function(String? email, String? password)? get onSubmitted => widget.onSubmitted;
 
   @override
   void initState() {
@@ -60,13 +59,13 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
     return isValid;
   }
 
-  void submit() {
+  /*void submit() {
     if (validate()) {
       if (onSubmitted != null) {
         onSubmitted!(username, password);
       }
     }
-  }
+  }*/
 
   void setErrorText() {
     resetErrorText();
@@ -113,7 +112,7 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: ListView(
           children: [
-            const Image(image: AssetImage('res/areeVerdi.jpg')),
+            const Image(image: AssetImage('res/aree_verdi.jpg')),
             /*
             SizedBox(height: screenHeight * .12),
             const Text(
@@ -121,14 +120,6 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: screenHeight * .01),
-            Text(
-              "Sign in to continue!",
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.black.withOpacity(.6),
               ),
             ),*/
             SizedBox(height: screenHeight * .12),
@@ -151,26 +142,12 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
                   password = value;
                 });
               },
-              onSubmitted: (val) => submit(),
+              //onSubmitted: (val) => submit(),
               labelText: "Password",
               errorText: passwordError,
               obscureText: true,
               textInputAction: TextInputAction.next,
             ),
-            /*
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {},
-                child: const Text(
-                  "Forgot Password?",
-                  style: TextStyle(
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ),
-             */
             SizedBox(
               height: screenHeight * .075,
             ),
@@ -178,11 +155,6 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
               text: "Accedi",
               onPressed: () =>
               {
-                /*Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const PersistentTabsDemo(),
-                ),*/
                 fetchCredentials()
               }
             ),
@@ -197,14 +169,14 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
                 ),
               ),
               child: RichText(
-                text: const TextSpan(
+                text: TextSpan(
                   text: "oppure registrati cliccando ",
-                  style: TextStyle(color: Colors.black),
+                  style: const TextStyle(color: Colors.black),
                   children: [
                     TextSpan(
                       text: "qui",
                       style: TextStyle(
-                        color: Color(0xfff05454),
+                        color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

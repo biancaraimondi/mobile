@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/navigation/saved/userPOIs.dart';
+import 'package:mobile/navigation/saved/user_pois.dart';
 import 'package:mobile/navigation/explore/map.dart';
 
+import '../route_generator.dart';
 
-GlobalKey userPOIsKey = GlobalKey<NavigatorState>();
 GlobalKey bottomBarKey = GlobalKey<NavigatorState>();
 
 class PersistentTabs extends StatelessWidget {
@@ -19,13 +19,8 @@ class PersistentTabs extends StatelessWidget {
           (w) => Offstage(
         offstage: currentTabIndex != screenWidgets.indexOf(w),
         child: Navigator(
-        /*initialRoute: '/',
-        onGenerateRoute: RouteGenerator.generateRoute,*/
-          onGenerateRoute: (routeSettings) {
-            return MaterialPageRoute(
-                builder: (_) => w
-            );
-          },
+        initialRoute: w is Explore?'/explore':'/saved',
+        onGenerateRoute: RouteGenerator.generateRoute,
         ),
       ),
     )
@@ -45,7 +40,7 @@ class PersistentTabsDemo extends StatefulWidget {
   const PersistentTabsDemo({Key? key}) : super(key: key);
 
   @override
-  _PersistentTabsDemoState createState() => _PersistentTabsDemoState();
+  State<PersistentTabsDemo> createState() => _PersistentTabsDemoState();
 }
 
 class _PersistentTabsDemoState extends State<PersistentTabsDemo> {

@@ -1,8 +1,7 @@
-import 'Position.dart';
+import 'package:mobile/models/position.dart';
 
 class POI {
   final String id;
-  /// Which overall category this product belongs in. e.g - areeVerdi, bar, musei, etc
   final String type;
   final Position position;
   final int rank;
