@@ -1,16 +1,16 @@
 class Position {
-  final double latitude;
-  final double longitude;
+  final String type;
+  final List<double> coordinates;
 
   Position(
-      {required this.longitude,
-        required this.latitude}
+      {required this.type,
+        required this.coordinates}
       );
 
   factory Position.fromJson(Map<String, dynamic> json) {
     return Position(
-      latitude: json['latitude'],
-      longitude: json['longitude'],
+      type: json['type'],
+      coordinates: [json['coordinates'].cast<double>()[1], json['coordinates'].cast<double>()[0]],
     );
   }
 }

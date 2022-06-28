@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 
@@ -75,9 +76,21 @@ class _SimpleRegisterScreenState extends State<SimpleRegisterScreen> {
     }
   }*/
 
+  void setErrorText(String error) {
+    resetErrorText();
+    setState(() {
+      usernameError = error;
+      passwordError = error;
+    });
+  }
+
+  void openLoginScreen() {
+    Navigator.pushNamed(context, '/login');
+  }
+
   Future<void> saveCredentials() async {
     final response = await http
-        .post(
+        .put(
       Uri.parse('http://localhost:3001/auth/signup'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
@@ -88,8 +101,12 @@ class _SimpleRegisterScreenState extends State<SimpleRegisterScreen> {
       }),
     );
 
-    if (response.statusCode == 200) {
-      //return openNavigation(jsonDecode(response.body)['msg']);
+    developer.log(jsonDecode(response.body)['msg'], name: 'SIGNUP');
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      openLoginScreen();
+    } else if (response.statusCode >= 400 && response.statusCode < 500) {
+      setErrorText(jsonDecode(response.body)['msg']);
     } else {
       throw Exception('Failed to load signup credentials');
     }

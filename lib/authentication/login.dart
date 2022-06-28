@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:mobile/authentication/registration.dart';
@@ -75,12 +76,8 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
     });
   }
 
-  void openNavigation(String loginMsg) {
-    if (loginMsg == 'Login failed') {
-      setErrorText();
-    } else {
-      Navigator.pushNamed(context, '/userNavigationBar');
-    }
+  void openNavigation() {
+    Navigator.pushNamed(context, '/userNavigationBar');
   }
 
   Future<void> fetchCredentials() async {
@@ -96,8 +93,12 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
             }),
         );
 
-    if (response.statusCode == 200) {
-      return openNavigation(jsonDecode(response.body)['msg']);
+    developer.log(jsonDecode(response.body)['msg'], name: 'LOGIN');
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      openNavigation();
+    } else if (response.statusCode >= 400 && response.statusCode < 500) {
+      setErrorText();
     } else {
       throw Exception('Failed to load login credentials');
     }

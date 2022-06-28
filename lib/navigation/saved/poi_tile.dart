@@ -26,7 +26,7 @@ class _POITileState extends State<POITile> {
     var newMarker = Marker(
         width: 45.0,
         height: 45.0,
-        point: LatLng(poi.position.latitude, poi.position.longitude),
+        point: LatLng(poi.position.coordinates[0], poi.position.coordinates[1]),
         builder: (ctx) => Icon(
           Icons.location_on,
           size: 45.0,
@@ -35,7 +35,7 @@ class _POITileState extends State<POITile> {
     );
     explore.layers[1].markers.add(newMarker);
     explore.mapController.move(
-        LatLng(poi.position.latitude, poi.position.longitude),
+        LatLng(poi.position.coordinates[0], poi.position.coordinates[1]),
         14.0
     );
 
@@ -62,7 +62,7 @@ class _POITileState extends State<POITile> {
           ),
           title: GestureDetector(
             onTap: () => _pushScreen(),
-            child: Text(poi.id),
+            child: Text(poi.name),
           ),
           subtitle: GestureDetector(
             onTap: () => _pushScreen(),

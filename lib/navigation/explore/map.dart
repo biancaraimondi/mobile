@@ -1,12 +1,32 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'dart:developer' as developer;
+import 'package:http/http.dart' as http;
+import 'package:location/location.dart';
 
+import '../../models/poi.dart';
+import '../../models/position.dart';
+
+//global key for the map
 GlobalKey exploreKey = GlobalKey<NavigatorState>();
 
-enum CategoryValues { areeVerdi, bar, musei }
+//enums for radio buttons filters
+enum CategoryValues { greenarea, bar, restaurant, museum }
+extension ParseToStringCategory on CategoryValues {
+  String toShortString() {
+    return toString().split('.').last;
+  }
+}
 enum PrivacyValues { dummyUpdate, GPSPerturbation, noPrivacy}
+extension ParseToStringPrivacy on PrivacyValues {
+  String toShortString() {
+    return toString().split('.').last;
+  }
+}
 
 class Explore extends StatefulWidget {
   const Explore({Key? key}) : super(key: key);
@@ -17,31 +37,194 @@ class Explore extends StatefulWidget {
 
 class _ExploreState extends State<Explore> {
 
-  double _currentRankValue = 5;
-  CategoryValues? _currentCategoryValue = CategoryValues.areeVerdi;
-  PrivacyValues? _currentPrivacyValue = PrivacyValues.noPrivacy;
+  double _currentRankValue = 0;
+  CategoryValues? _currentCategoryValue;
+  PrivacyValues? _currentPrivacyValue;
   bool _isDummy = false;
   bool _isGPS = false;
   int? _currentPrivacyNumber;
+  late bool _serviceEnabled;
+  late PermissionStatus _permissionGranted;
+  late LocationData _locationData;
+  List<Marker> _markers = [];
 
-  List<Marker> setMarkers(){
-    Marker markerTest = Marker(
-          width: 45.0,
-          height: 45.0,
-          point: LatLng(44.4938203, 11.3426327),
-          builder: (ctx) => Icon(
-            Icons.location_on,
-            size: 45.0,
-            color: Theme.of(context).colorScheme.secondary,
-          ),
+  @override
+  void initState() {
+    super.initState();
+
+    getLocation();
+    setAllMarkers();
+  }
+
+  Future<void> getLocation() async {
+    Location location = Location();
+
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await location.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    _locationData = await location.getLocation();
+    developer.log("Device position: ${_locationData.latitude}, ${_locationData.longitude}", name: "POSITION");
+    location.onLocationChanged.listen((LocationData currentLocation) {
+      developer.log("Device position: ${currentLocation.latitude}, ${currentLocation.longitude}", name: "POSITION");
+      _locationData = currentLocation;
+    });
+    location.enableBackgroundMode(enable: true);
+  }
+
+  void setAllMarkers() async {
+    final response = await http
+        .get(
+      Uri.parse('http://localhost:3001/poi'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
     );
 
-    List<Marker> markers = [markerTest];
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final pois = await jsonDecode(response.body);
+      List<POI> poiList = [];
+      for (var poi in pois) {
+        poiList.add(POI.fromJson(poi));
+      }
+      developer.log("List of POI returned by server", name: "POIS");
+      return setMarkers(poiList, false);
+    } else if (response.statusCode >= 400 && response.statusCode < 500) {
+      throw Exception('Failed to get pois');
+    } else {
+      throw Exception('Failed to call http request');
+    }
+  }
 
-    //TODO richiesta di markers al server
-    //markers.add(markers[0]);
+  void setFilteredMarkers() async {
+    developer.log("Rank: $_currentRankValue \nCategory: ${_currentCategoryValue?.toShortString() as String} \nLatitude: ${_locationData.latitude} \nLongitude: ${_locationData.longitude}", name: "FILTERS");
+    final response = await http
+        .post(
+      Uri.parse('http://localhost:3001/poi/optimal'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode({
+                "minRank": _currentRankValue,
+                "type": _currentCategoryValue?.toShortString() as String,
+                "positions": [
+                  {
+                    "latitude": _locationData.latitude,
+                    "longitude": _locationData.longitude
+                  },
+                ]
+            }),
+    );
 
-    return markers;
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final pois = await jsonDecode(response.body);
+      dynamic rightPoi;
+      for (var poi in pois['items']) {
+        if (poi['position']['latitude'] == _locationData.latitude && poi['position']['longitude'] == _locationData.longitude) {
+          rightPoi = poi['poi'];
+        }
+      }
+      //developer.log("$rightPoi", name: "OPTIMAL POI");
+      List<POI> poiList = [
+        POI(
+          id: 1,
+          name: rightPoi['name'],
+          position: Position(
+              type: 'Point',
+              coordinates: [
+                rightPoi['position']['latitude'],
+                rightPoi['position']['longitude']
+              ]),
+          type: rightPoi['type'],
+          rank: rightPoi['rank']
+        )
+      ];
+      developer.log("Optimal POI returned by server", name: "POIS");
+      return setMarkers(poiList, true);
+    } else if (response.statusCode >= 400 && response.statusCode < 500) {
+      throw Exception('Failed to get pois');
+    } else {
+      throw Exception('Failed to call http request');
+    }
+  }
+
+  void setMarkers(List<POI> pois, bool withFilters) async {
+    //_markers.clear();
+
+    /*
+    if (withFilters) {
+      pois = pois.where((poi) => poi.rank >= _currentRankValue).toList();
+      if (_currentCategoryValue != null) {
+        developer.log(_currentCategoryValue.toString(), name: "CATEGORY");
+        pois = pois.where((poi) => poi.type == _currentCategoryValue?.toShortString()).toList();
+        for (var poi in pois) {
+          developer.log(poi.id.toString(), name: "POI");
+        }
+      }
+      //pois = pois.where((poi) => poi.privacy == _currentPrivacyNumber).toList();
+    }
+     */
+
+    for (var poi in pois) {
+      Color color;
+      switch (poi.type){
+        case "greenarea":
+          color = Colors.green;
+          break;
+        case "bar":
+        case "restaurant":
+          color = Colors.blue;
+          break;
+        case "museum":
+          color = Colors.red;
+          break;
+        default:
+          color = Theme.of(context).colorScheme.secondary;
+      }
+
+      var marker = Marker(
+        width: 45.0,
+        height: 45.0,
+        point: LatLng(poi.position.coordinates[0], poi.position.coordinates[1]),
+        builder: (context) => Icon(
+          Icons.location_on,
+          size: 45.0,
+          color: color,
+        ),
+      );
+
+      if (!_markers.contains(marker)) {
+        _markers.add(marker);
+        developer.log("Marker added to map", name: "MARKERS");
+      }
+
+
+      if (withFilters) {
+        final dynamic explore = exploreKey.currentWidget;
+        explore.mapController.move(
+            LatLng(marker.point.latitude, marker.point.longitude),
+            15.5
+        );
+      } else {
+        final dynamic explore = exploreKey.currentWidget;
+        explore.mapController.move(
+            LatLng(44.4988203, 11.3426327),
+            13.5
+        );
+      }
+    }
   }
 
   @override
@@ -61,7 +244,7 @@ class _ExploreState extends State<Explore> {
                       subdomains: ['a', 'b', 'c']
                   ),
                   MarkerLayerOptions(
-                      markers: setMarkers()
+                      markers: _markers
                   )
                 ],
                 mapController: MapController(),
@@ -120,8 +303,10 @@ class _ExploreState extends State<Explore> {
                                       ListTile(
                                         title: const Text('Aree Verdi'),
                                         leading: Radio<CategoryValues>(
-                                          value: CategoryValues.areeVerdi,
+                                          value: CategoryValues.greenarea,
                                           groupValue: _currentCategoryValue,
+                                          toggleable: true,
+                                          activeColor: Theme.of(context).colorScheme.secondary,
                                           onChanged: (CategoryValues? value) {
                                             state(() {
                                               _currentCategoryValue = value;
@@ -130,28 +315,52 @@ class _ExploreState extends State<Explore> {
                                         ),
                                       ),
                                       ListTile(
-                                        title: const Text('Bar e Ristoranti'),
+                                        title: const Text('Bar'),
                                         leading: Radio<CategoryValues>(
                                           value: CategoryValues.bar,
                                           groupValue: _currentCategoryValue,
+                                          toggleable: true,
+                                          activeColor: Theme.of(context).colorScheme.secondary,
                                           onChanged: (CategoryValues? value) {
                                             state(() {
+                                              developer.log(value.toString());
                                               _currentCategoryValue = value;
                                             });
                                           },
+                                        ),
+                                      ),
+                                      ListTile(
+                                        title: const Text('Ristoranti'),
+                                        leading: Radio<CategoryValues>(
+                                            value: CategoryValues.restaurant,
+                                            groupValue: _currentCategoryValue,
+                                            toggleable: true,
+                                            activeColor: Theme.of(context).colorScheme.secondary,
+                                            onChanged: (CategoryValues? value) {
+                                                state(() {
+                                                    developer.log(value.toString());
+                                                    _currentCategoryValue = value;
+                                                });
+                                            },
                                         ),
                                       ),
                                       ListTile(
                                         title: const Text('Musei'),
                                         leading: Radio<CategoryValues>(
-                                        value: CategoryValues.musei,
+                                        value: CategoryValues.museum,
                                         groupValue: _currentCategoryValue,
+                                        toggleable: true,
+                                        activeColor: Theme.of(context).colorScheme.secondary,
                                         onChanged: (CategoryValues? value) {
                                             state(() {
                                               _currentCategoryValue = value;
                                             });
                                           },
                                         ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context, 'OK'),
+                                        child: const Text('OK'),
                                       )
                                     ],
                                   )
@@ -186,6 +395,8 @@ class _ExploreState extends State<Explore> {
                                               leading: Radio<PrivacyValues>(
                                                 value: PrivacyValues.dummyUpdate,
                                                 groupValue: _currentPrivacyValue,
+                                                toggleable: true,
+                                                activeColor: Theme.of(context).colorScheme.secondary,
                                                 onChanged: (PrivacyValues? value) {
                                                   state(() {
                                                     _currentPrivacyValue = value;
@@ -217,6 +428,8 @@ class _ExploreState extends State<Explore> {
                                               leading: Radio<PrivacyValues>(
                                                 value: PrivacyValues.GPSPerturbation,
                                                 groupValue: _currentPrivacyValue,
+                                                toggleable: true,
+                                                activeColor: Theme.of(context).colorScheme.secondary,
                                                 onChanged: (PrivacyValues? value) {
                                                   state(() {
                                                     _currentPrivacyValue = value;
@@ -248,6 +461,8 @@ class _ExploreState extends State<Explore> {
                                               leading: Radio<PrivacyValues>(
                                                 value: PrivacyValues.noPrivacy,
                                                 groupValue: _currentPrivacyValue,
+                                                toggleable: true,
+                                                activeColor: Theme.of(context).colorScheme.secondary,
                                                 onChanged: (PrivacyValues? value) {
                                                   state(() {
                                                     _currentPrivacyValue = value;
@@ -256,6 +471,10 @@ class _ExploreState extends State<Explore> {
                                                   });
                                                 },
                                               ),
+                                            ),
+                                            TextButton(
+                                                onPressed: () => Navigator.pop(context, 'OK'),
+                                                child: const Text('OK'),
                                             ),
                                           ],
                                         )
@@ -269,10 +488,88 @@ class _ExploreState extends State<Explore> {
                   label: const Text("Privacy", style: TextStyle(color: Colors.white)),
                   backgroundColor: Theme.of(context).colorScheme.secondary,
                 ),
-              )
+              ),
+              Align(
+                alignment: const FractionalOffset(0.95, 0.98),
+                child: FloatingActionButton.extended(
+                  heroTag: "submit",
+                  onPressed: () {
+                    if (_currentCategoryValue == null || _currentPrivacyValue == null) {
+                      showDialog<String>(
+                          context: context,
+                          builder: (BuildContext context) => AlertDialog(
+                            title: const Text('Attenzione'),
+                            content: const Text('Non hai selezionato tutti i filtri per la ricerca del POI ottimale'),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, 'OK'),
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          )
+                      );
+                    } else {
+                      setFilteredMarkers();
+                    }
+                  },
+                  icon: const Icon(Icons.search),
+                  label: const Text("Cerca", style: TextStyle(color: Colors.white)),
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
             ],
           )
     );
   }
 }
 
+/*
+List<POI> generatePois() {
+
+  List<POI> myPois = [
+    POI(
+      id: 1,
+      name: "Area Verde 1",
+      position: Position(type: "Point", coordinates: [44.4822181, 11.3526779]),
+      type: "green_area",
+      rank: 1,
+    ),
+    POI(
+      id: 2,
+      name: "Area Verde 2",
+      position: Position(type: "Point", coordinates: [44.49, 11.3526779]),
+      type: "green_area",
+      rank: 2,
+    ),
+    POI(
+      id: 3,
+      name: "Bar 1",
+      position: Position(type: "Point", coordinates: [44.50, 11.3526779]),
+      type: "bar",
+      rank: 1,
+    ),
+    POI(
+      id: 4,
+      name: "Bar 2",
+      position: Position(type: "Point", coordinates: [44.51, 11.3526779]),
+      type: "bar",
+      rank: 2,
+    ),
+    POI(
+      id: 5,
+      name: "Museo 1",
+      position: Position(type: "Point", coordinates: [44.52, 11.3526779]),
+      type: "museum",
+      rank: 1,
+    ),
+    POI(
+      id: 6,
+      name: "Museo 2",
+      position: Position(type: "Point", coordinates: [44.53, 11.3526779]),
+      type: "museum",
+      rank: 2,
+    )
+  ];
+  return myPois;
+}
+*/
