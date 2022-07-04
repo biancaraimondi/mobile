@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 import 'package:latlong2/latlong.dart';
 import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
+import 'package:mobile/navigation/explore/popup.dart';
 
 import '../../models/poi.dart';
 import '../../models/position.dart';
@@ -15,7 +17,7 @@ import '../../models/position.dart';
 GlobalKey exploreKey = GlobalKey<NavigatorState>();
 
 //enums for radio buttons filters
-enum CategoryValues { greenarea, bar, restaurant, museum }
+enum CategoryValues { historicalBuilding, park, theater, museum, department }
 extension ParseToStringCategory on CategoryValues {
   String toShortString() {
     return toString().split('.').last;
@@ -47,6 +49,9 @@ class _ExploreState extends State<Explore> {
   late PermissionStatus _permissionGranted;
   late LocationData _locationData;
   List<Marker> _markers = [];
+  late double _zoom;
+  final PopupController _popupLayerController = PopupController();
+  bool popupShown = false;
 
   @override
   void initState() {
@@ -54,6 +59,7 @@ class _ExploreState extends State<Explore> {
 
     getLocation();
     setAllMarkers();
+    _zoom = 13.5;
   }
 
   Future<void> getLocation() async {
@@ -110,6 +116,10 @@ class _ExploreState extends State<Explore> {
 
   void setFilteredMarkers() async {
     developer.log("Rank: $_currentRankValue \nCategory: ${_currentCategoryValue?.toShortString() as String} \nLatitude: ${_locationData.latitude} \nLongitude: ${_locationData.longitude}", name: "FILTERS");
+    var category = _currentCategoryValue?.toShortString() as String;
+    if (category == "hystoricalBuilding") {
+      category = "hystorical building";
+    }
     final response = await http
         .post(
       Uri.parse('http://localhost:3001/poi/optimal'),
@@ -118,7 +128,7 @@ class _ExploreState extends State<Explore> {
       },
       body: jsonEncode({
                 "minRank": _currentRankValue,
-                "type": _currentCategoryValue?.toShortString() as String,
+                "type": category,
                 "positions": [
                   {
                     "latitude": _locationData.latitude,
@@ -136,7 +146,7 @@ class _ExploreState extends State<Explore> {
           rightPoi = poi['poi'];
         }
       }
-      //developer.log("$rightPoi", name: "OPTIMAL POI");
+
       List<POI> poiList = [
         POI(
           id: 1,
@@ -161,34 +171,24 @@ class _ExploreState extends State<Explore> {
   }
 
   void setMarkers(List<POI> pois, bool withFilters) async {
-    //_markers.clear();
-
-    /*
-    if (withFilters) {
-      pois = pois.where((poi) => poi.rank >= _currentRankValue).toList();
-      if (_currentCategoryValue != null) {
-        developer.log(_currentCategoryValue.toString(), name: "CATEGORY");
-        pois = pois.where((poi) => poi.type == _currentCategoryValue?.toShortString()).toList();
-        for (var poi in pois) {
-          developer.log(poi.id.toString(), name: "POI");
-        }
-      }
-      //pois = pois.where((poi) => poi.privacy == _currentPrivacyNumber).toList();
-    }
-     */
-
+    //historicalBuilding, park, theater, museum, department
     for (var poi in pois) {
       Color color;
       switch (poi.type){
-        case "greenarea":
+        case "historical building":
+          color = Colors.brown;
+          break;
+        case "park":
           color = Colors.green;
           break;
-        case "bar":
-        case "restaurant":
+        case "theater":
           color = Colors.blue;
           break;
         case "museum":
           color = Colors.red;
+          break;
+        case "department":
+          color = Colors.orange;
           break;
         default:
           color = Theme.of(context).colorScheme.secondary;
@@ -198,11 +198,37 @@ class _ExploreState extends State<Explore> {
         width: 45.0,
         height: 45.0,
         point: LatLng(poi.position.coordinates[0], poi.position.coordinates[1]),
-        builder: (context) => Icon(
-          Icons.location_on,
-          size: 45.0,
-          color: color,
-        ),
+        builder: (context) => IconButton(
+            onPressed: (){
+              ShowMoreTextPopup popup = ShowMoreTextPopup(context,
+                  text: poi.name,
+                  height: 75,
+                  width: 300,
+                  textStyle: const TextStyle(color: Colors.black),
+                  backgroundColor: Colors.white,
+              );
+
+              popup.show(
+                rect: Rect.fromLTWH(
+                  MediaQuery.of(context).size.width / 2 - 100,
+                  MediaQuery.of(context).size.height / 2 - 50,
+                  200,
+                  200,
+                ),
+              );
+              final dynamic explore = exploreKey.currentWidget;
+              explore.mapController.move(
+                  LatLng(poi.position.coordinates[0], poi.position.coordinates[1]),
+                  15.5
+              );
+              _zoom = 15.5;
+            },
+            icon: Icon(
+              Icons.location_on,
+              size: 45.0,
+              color: color,
+            ),
+          ),
       );
 
       if (!_markers.contains(marker)) {
@@ -217,12 +243,14 @@ class _ExploreState extends State<Explore> {
             LatLng(marker.point.latitude, marker.point.longitude),
             15.5
         );
+        _zoom = 15.5;
       } else {
         final dynamic explore = exploreKey.currentWidget;
         explore.mapController.move(
             LatLng(44.4988203, 11.3426327),
             13.5
         );
+        _zoom = 13.5;
       }
     }
   }
@@ -236,7 +264,15 @@ class _ExploreState extends State<Explore> {
                 key: exploreKey,
                 options: MapOptions(
                   center: LatLng(44.4938203, 11.3426327),
-                  zoom: 13.5,
+                  zoom: _zoom,
+                  maxZoom: 18,
+                  minZoom: 13,
+                  /*
+                  bounds: LatLngBounds(
+                    southwest: LatLng(44.4988203, 11.3426327),
+                    northeast: LatLng(44.4988203, 11.3426327),
+                  ),
+                  */
                 ),
                 layers: [
                   TileLayerOptions(
@@ -245,7 +281,7 @@ class _ExploreState extends State<Explore> {
                   ),
                   MarkerLayerOptions(
                       markers: _markers
-                  )
+                  ),
                 ],
                 mapController: MapController(),
               ),
@@ -301,9 +337,9 @@ class _ExploreState extends State<Explore> {
                                   child: Column(
                                     children: <Widget>[
                                       ListTile(
-                                        title: const Text('Aree Verdi'),
+                                        title: const Text('Edificio Storico'),
                                         leading: Radio<CategoryValues>(
-                                          value: CategoryValues.greenarea,
+                                          value: CategoryValues.historicalBuilding,
                                           groupValue: _currentCategoryValue,
                                           toggleable: true,
                                           activeColor: Theme.of(context).colorScheme.secondary,
@@ -315,9 +351,9 @@ class _ExploreState extends State<Explore> {
                                         ),
                                       ),
                                       ListTile(
-                                        title: const Text('Bar'),
+                                        title: const Text('Parco'),
                                         leading: Radio<CategoryValues>(
-                                          value: CategoryValues.bar,
+                                          value: CategoryValues.park,
                                           groupValue: _currentCategoryValue,
                                           toggleable: true,
                                           activeColor: Theme.of(context).colorScheme.secondary,
@@ -330,9 +366,9 @@ class _ExploreState extends State<Explore> {
                                         ),
                                       ),
                                       ListTile(
-                                        title: const Text('Ristoranti'),
+                                        title: const Text('Teatro'),
                                         leading: Radio<CategoryValues>(
-                                            value: CategoryValues.restaurant,
+                                            value: CategoryValues.theater,
                                             groupValue: _currentCategoryValue,
                                             toggleable: true,
                                             activeColor: Theme.of(context).colorScheme.secondary,
@@ -345,13 +381,27 @@ class _ExploreState extends State<Explore> {
                                         ),
                                       ),
                                       ListTile(
-                                        title: const Text('Musei'),
+                                        title: const Text('Museo'),
                                         leading: Radio<CategoryValues>(
                                         value: CategoryValues.museum,
                                         groupValue: _currentCategoryValue,
                                         toggleable: true,
                                         activeColor: Theme.of(context).colorScheme.secondary,
                                         onChanged: (CategoryValues? value) {
+                                            state(() {
+                                              _currentCategoryValue = value;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      ListTile(
+                                        title: const Text('Dipartimento'),
+                                        leading: Radio<CategoryValues>(
+                                          value: CategoryValues.department,
+                                          groupValue: _currentCategoryValue,
+                                          toggleable: true,
+                                          activeColor: Theme.of(context).colorScheme.secondary,
+                                          onChanged: (CategoryValues? value) {
                                             state(() {
                                               _currentCategoryValue = value;
                                             });
@@ -492,7 +542,7 @@ class _ExploreState extends State<Explore> {
               Align(
                 alignment: const FractionalOffset(0.95, 0.98),
                 child: FloatingActionButton.extended(
-                  heroTag: "submit",
+                  heroTag: "search",
                   onPressed: () {
                     if (_currentCategoryValue == null || _currentPrivacyValue == null) {
                       showDialog<String>(
@@ -515,6 +565,44 @@ class _ExploreState extends State<Explore> {
                   icon: const Icon(Icons.search),
                   label: const Text("Cerca", style: TextStyle(color: Colors.white)),
                   backgroundColor: Theme.of(context).colorScheme.secondary,
+                ),
+              ),
+              Align(
+                alignment: const FractionalOffset(0.05, 0.88),
+                child: FloatingActionButton(
+                  heroTag: "zoom_out",
+                  onPressed: () {
+                    if (_zoom > 13) {
+                      final dynamic explore = exploreKey.currentWidget;
+                      explore.mapController.move(
+                          LatLng(_markers[0].point.latitude,
+                              _markers[0].point.longitude),
+                          --_zoom
+                      );
+                      developer.log("Zoom Out: $_zoom", name: "ZOOM");
+                    }
+                  },
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  child: const Icon(Icons.remove),
+                ),
+              ),
+              Align(
+                alignment: const FractionalOffset(0.05, 0.98),
+                child: FloatingActionButton(
+                  heroTag: "zoom_in",
+                  onPressed: () {
+                    if (_zoom < 18) {
+                      final dynamic explore = exploreKey.currentWidget;
+                      explore.mapController.move(
+                          LatLng(_markers[0].point.latitude,
+                              _markers[0].point.longitude),
+                          ++_zoom
+                      );
+                      developer.log("Zoom In: $_zoom", name: "ZOOM");
+                    }
+                  },
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  child: const Icon(Icons.add),
                 ),
               ),
             ],
