@@ -176,19 +176,19 @@ class _ExploreState extends State<Explore> {
       Color color;
       switch (poi.type){
         case "historical building":
-          color = Colors.brown;
+          color = Colors.blue;
           break;
         case "park":
           color = Colors.green;
           break;
         case "theater":
-          color = Colors.blue;
-          break;
-        case "museum":
           color = Colors.red;
           break;
+        case "museum":
+          color = Colors.deepPurple;
+          break;
         case "department":
-          color = Colors.orange;
+          color = Colors.amber;
           break;
         default:
           color = Theme.of(context).colorScheme.secondary;
@@ -206,6 +206,7 @@ class _ExploreState extends State<Explore> {
                   width: 300,
                   textStyle: const TextStyle(color: Colors.black),
                   backgroundColor: Colors.white,
+                  poi: poi,
               );
 
               popup.show(
@@ -610,54 +611,3 @@ class _ExploreState extends State<Explore> {
     );
   }
 }
-
-/*
-List<POI> generatePois() {
-
-  List<POI> myPois = [
-    POI(
-      id: 1,
-      name: "Area Verde 1",
-      position: Position(type: "Point", coordinates: [44.4822181, 11.3526779]),
-      type: "green_area",
-      rank: 1,
-    ),
-    POI(
-      id: 2,
-      name: "Area Verde 2",
-      position: Position(type: "Point", coordinates: [44.49, 11.3526779]),
-      type: "green_area",
-      rank: 2,
-    ),
-    POI(
-      id: 3,
-      name: "Bar 1",
-      position: Position(type: "Point", coordinates: [44.50, 11.3526779]),
-      type: "bar",
-      rank: 1,
-    ),
-    POI(
-      id: 4,
-      name: "Bar 2",
-      position: Position(type: "Point", coordinates: [44.51, 11.3526779]),
-      type: "bar",
-      rank: 2,
-    ),
-    POI(
-      id: 5,
-      name: "Museo 1",
-      position: Position(type: "Point", coordinates: [44.52, 11.3526779]),
-      type: "museum",
-      rank: 1,
-    ),
-    POI(
-      id: 6,
-      name: "Museo 2",
-      position: Position(type: "Point", coordinates: [44.53, 11.3526779]),
-      type: "museum",
-      rank: 2,
-    )
-  ];
-  return myPois;
-}
-*/

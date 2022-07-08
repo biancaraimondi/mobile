@@ -2,6 +2,9 @@ import 'dart:core';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
+
+import '../../models/poi.dart';
 
 class ShowMoreTextPopup{
   late double _popupWidth;
@@ -18,8 +21,6 @@ class ShowMoreTextPopup{
   late Offset _offset;
   late Rect _showRect;
 
-  late TextStyle _textStyle;
-
   VoidCallback? dismissCallback;
 
   late Size _screenSize;
@@ -30,6 +31,7 @@ class ShowMoreTextPopup{
   late BorderRadius _borderRadius;
   late EdgeInsetsGeometry _padding;
   bool _isFavorited = false;
+  late POI _poi;
 
   ShowMoreTextPopup(this.context,
       {double? height,
@@ -39,27 +41,27 @@ class ShowMoreTextPopup{
         String? text,
         TextStyle? textStyle,
         BorderRadius? borderRadius,
-        EdgeInsetsGeometry? padding}) {
-    this.dismissCallback = onDismiss;
-    this._popupHeight = height ?? 200;
-    this._popupWidth = width ?? 200;
-    this._text = text ?? '';
-    this._textStyle = textStyle ??
-        TextStyle(fontWeight: FontWeight.normal, color: Color(0xFF000000));
-    this._backgroundColor = backgroundColor ?? Color(0xFFFFA500);
-    this._borderRadius = borderRadius ?? BorderRadius.circular(10.0);
-    this._padding = padding ?? EdgeInsets.all(0.0);
+        EdgeInsetsGeometry? padding,
+        required POI poi}) {
+    dismissCallback = onDismiss;
+    _popupHeight = height ?? 200;
+    _popupWidth = width ?? 200;
+    _text = text ?? '';
+    _backgroundColor = backgroundColor ?? const Color(0xFFFFA500);
+    _borderRadius = borderRadius ?? BorderRadius.circular(10.0);
+    _padding = padding ?? const EdgeInsets.all(0.0);
+    _poi = poi;
   }
 
   /// Shows a popup near a widget with key [widgetKey] or [rect].
   void show({Rect? rect, GlobalKey? widgetKey}) {
     if (rect == null && widgetKey == null) {
-      print("both 'rect' and 'key' can't be null");
+      developer.log("both 'rect' and 'key' can't be null");
       return;
     }
 
-    this._showRect = rect ?? _getWidgetGlobalRect(widgetKey!);
-    this._screenSize = window.physicalSize / window.devicePixelRatio;
+    _showRect = rect ?? _getWidgetGlobalRect(widgetKey!);
+    _screenSize = window.physicalSize / window.devicePixelRatio;
 
     _calculatePosition(context);
 
@@ -122,7 +124,7 @@ class ShowMoreTextPopup{
             children: <Widget>[
               // triangle arrow
               Positioned(
-                left: _showRect.left + _showRect.width / 2.0 + 7.5,
+                left: _showRect.left + _showRect.width / 2.0 + 7,
                 top: _isDownArrow
                     ? offset.dy + _popupHeight -20
                     : offset.dy - arrowHeight,
@@ -154,9 +156,12 @@ class ShowMoreTextPopup{
                     child: ListTile(
                         leading: Icon(Icons.location_pin, color: Theme.of(context).colorScheme.secondary),
                         title: Text(_text),
-                        subtitle: Text('Rank: 1'), //Text('Rank: $_rank'),
+                        subtitle: Text('Rank: ${_poi.rank}'),
                         trailing: IconButton(
-                            onPressed: () => _toggleFavorite(),
+                            onPressed: () => {
+                              _toggleFavorite()
+                              //TODO: add favorite to database
+                            },
                             icon: _isFavorited
                                 ? Icon(Icons.favorite, color: Theme.of(context).colorScheme.secondary)
                                 : Icon(Icons.favorite_border, color: Theme.of(context).colorScheme.secondary)
@@ -173,10 +178,7 @@ class ShowMoreTextPopup{
   }
 
   void _toggleFavorite() {
-    //TODO add backend
-    //setState(() {
-      _isFavorited = !_isFavorited;
-    //});
+    _isFavorited = !_isFavorited;
   }
 
   /// Dismisses the popup

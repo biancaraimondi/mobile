@@ -16,23 +16,33 @@ class _UserPOIsState extends State<UserPOIs> {
     return Scaffold(
       body: ListView(
         padding: listViewPadding,
-        children: [
-          const SizedBox(height: 16),
+        children: const [
+          SizedBox(height: 16),
           CategoryTile(
-            imageUrl: "res/aree_verdi.jpg",
-            category: areeVerdi,
+            imageUrl: "res/historical_building.jpg",
+            category: 'edifici storici',
             imageAlignment: Alignment.topCenter,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           CategoryTile(
-            imageUrl: "res/bar.jpg",
-            category: bar,
+            imageUrl: "res/park.jpg",
+            category: 'parchi',
             imageAlignment: Alignment.topCenter,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           CategoryTile(
-            imageUrl: "res/musei.jpg",
-            category: musei,
+            imageUrl: "res/theater.jpg",
+            category: 'teatri',
+          ),
+          SizedBox(height: 16),
+          CategoryTile(
+            imageUrl: "res/museum.jpg",
+            category: 'musei',
+          ),
+          SizedBox(height: 16),
+          CategoryTile(
+            imageUrl: "res/department.jpg",
+            category: 'dipartimenti',
           ),
         ],
       ),
@@ -86,7 +96,3 @@ class CategoryTile extends StatelessWidget {
     );
   }
 }
-
-String areeVerdi = "Aree Verdi";
-String bar = "Bar e Ristoranti";
-String musei = "Musei";

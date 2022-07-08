@@ -4,6 +4,8 @@ import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:mobile/authentication/registration.dart';
 import 'package:http/http.dart' as http;
+import 'package:mobile/main.dart';
+import 'package:mobile/globals.dart' as globals;
 
 import '/authentication/access_register_button.dart';
 import '/authentication/input_field.dart';
@@ -18,6 +20,7 @@ class SimpleLoginScreen extends StatefulWidget {
 }
 
 class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
+
   late String username, password;
   String? usernameError, passwordError;
   //Function(String? email, String? password)? get onSubmitted => widget.onSubmitted;
@@ -96,6 +99,7 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
     developer.log(jsonDecode(response.body)['msg'], name: 'LOGIN');
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
+      globals.setUsername(username);
       openNavigation();
     } else if (response.statusCode >= 400 && response.statusCode < 500) {
       setErrorText();
@@ -113,7 +117,7 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: ListView(
           children: [
-            const Image(image: AssetImage('res/aree_verdi.jpg')),
+            const Image(image: AssetImage('res/park.jpg')),
             /*
             SizedBox(height: screenHeight * .12),
             const Text(

@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import '../../models/poi.dart';
 import 'poi_tile.dart';
-import '../../models/position.dart';
+import 'package:http/http.dart' as http;
+import 'dart:developer' as developer;
+import 'package:mobile/globals.dart' as globals;
+
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({required this.category, Key? key}) : super(key: key);
@@ -12,94 +17,122 @@ class CategoryScreen extends StatefulWidget {
   State<CategoryScreen> createState() => _CategoryScreenState();
 }
 
+Future<List<POITile>> getSavedPois(String username, String category) async {
+  final response = await http
+      .get(
+    Uri.parse('http://localhost:3001/me/poi/$username'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+  );
+
+  if (response.statusCode >= 200 && response.statusCode < 300) {
+    final pois = await jsonDecode(response.body);
+    List<POI> poiList = [];
+    for (var poi in pois['POIs']) {
+      poiList.add(POI.fromJson(poi));
+    }
+    developer.log("List of POI returned by server", name: "POIS");
+    switch (category){
+      case "edifici storici":
+        category = "historical building";
+        break;
+      case "parchi":
+        category = "park";
+        break;
+      case "teatri":
+        category = "theater";
+        break;
+      case "musei":
+        category = "museum";
+        break;
+      case "dipartimenti":
+        category = "department";
+        break;
+      default:
+        category = "error";
+        break;
+    }
+    
+    poiList = poiList.where((p) => p.type == category).toList();
+    return poiList.map((p) => POITile(poi: p)).toList();
+  } else {
+    throw Exception('Failed to call http request');
+  }
+}
+
 class _CategoryScreenState extends State<CategoryScreen> {
+  final username = globals.getUsername();
   String get category => widget.category;
-  late List<POI> _pois;
+  //late Future<List<POITile>> _pois;
 
   @override
   void initState() {
-    _pois = pois.where((p) => p.type == category).toList();
     super.initState();
+    //_pois = getSavedPois(username, category);
   }
 
   @override
   Widget build(BuildContext context) {
-    List<POITile> poiTiles =
-    _pois.map((p) => POITile(poi: p)).toList();
-    return poiTiles.isEmpty
-        ? const SizedBox.shrink()
-        :
-    Scaffold(
-      appBar: AppBar(
-          centerTitle: true,
-          title: Text(category)
-      ),
-      body: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: MediaQuery.of(context).size.width,
-              child: ListView.separated(
-                padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
-                itemCount: poiTiles.length,
-                scrollDirection: Axis.vertical,
-                itemBuilder: (_, index) => poiTiles[index],
-                separatorBuilder: (_, index) => const SizedBox(
-                  height: 5,
-                ),
+    return FutureBuilder<List<POITile>>(
+      future: getSavedPois(username, category),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return Scaffold(
+              appBar: AppBar(
+                  centerTitle: true,
+                  title: Text(category)
               ),
-            ),
-          ],
-    )
+              body: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
+                      itemCount: snapshot.data?.length ?? 5,
+                      scrollDirection: Axis.vertical,
+                      itemBuilder: (_, index) => snapshot.data?[index] ?? Container(),
+                      separatorBuilder: (_, index) => const SizedBox(
+                        height: 5,
+                      ),
+                    ),
+                  ),
+                ],
+              )
+          );
+        } else if (snapshot.hasError) {
+          return Text("${snapshot.error}");
+        }
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+        /*
+        return Scaffold(
+          appBar: AppBar(
+              centerTitle: true,
+              title: Text(category)
+          ),
+          body: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
+                    itemCount: _pois,
+                    scrollDirection: Axis.vertical,
+                    itemBuilder: (_, index) => poiTiles[index],
+                    separatorBuilder: (_, index) => const SizedBox(
+                      height: 5,
+                    ),
+                  ),
+                ),
+              ],
+        )
+        );
+         */
+      },
     );
   }
 }
-
-String areeVerdi = "Aree Verdi";
-String bar = "Bar e Ristoranti";
-String musei = "Musei";
-
-List<POI> pois = [
-  POI(
-    id: 1,
-    name: "Area Verde 1",
-    position: Position(type: "Point", coordinates: [44.4822181, 11.3526779]),
-    type: "green_area",
-    rank: 1,
-  ),
-  POI(
-    id: 2,
-    name: "Area Verde 2",
-    position: Position(type: "Point", coordinates: [44.49, 11.3526779]),
-    type: "green_area",
-    rank: 2,
-  ),
-  POI(
-    id: 3,
-    name: "Bar 1",
-    position: Position(type: "Point", coordinates: [44.50, 11.3526779]),
-    type: "bar",
-    rank: 1,
-  ),
-  POI(
-    id: 4,
-    name: "Bar 2",
-    position: Position(type: "Point", coordinates: [44.51, 11.3526779]),
-    type: "bar",
-    rank: 2,
-  ),
-  POI(
-    id: 5,
-    name: "Museo 1",
-    position: Position(type: "Point", coordinates: [44.52, 11.3526779]),
-    type: "museum",
-    rank: 1,
-  ),
-  POI(
-    id: 6,
-    name: "Museo 2",
-    position: Position(type: "Point", coordinates: [44.53, 11.3526779]),
-    type: "museum",
-    rank: 2,
-  )
-];
