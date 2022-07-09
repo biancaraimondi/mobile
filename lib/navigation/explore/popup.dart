@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'dart:core';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
+import 'package:http/http.dart' as http;
 
 import '../../models/poi.dart';
+import 'package:mobile/globals.dart' as globals;
 
 class ShowMoreTextPopup{
   late double _popupWidth;
@@ -124,7 +127,7 @@ class ShowMoreTextPopup{
             children: <Widget>[
               // triangle arrow
               Positioned(
-                left: _showRect.left + _showRect.width / 2.0 + 7,
+                left: _showRect.left + _showRect.width / 2.0 + 6,
                 top: _isDownArrow
                     ? offset.dy + _popupHeight -20
                     : offset.dy - arrowHeight,
@@ -137,13 +140,13 @@ class ShowMoreTextPopup{
               // popup content
               Positioned(
                 left: offset.dx,
-                top: offset.dy -20,
+                top: offset.dy -20 -45,
                 width: _popupWidth,
-                height: _popupHeight,
+                height: _popupHeight+45,
                 child: Container(
                     padding: _padding,
                     width: _popupWidth,
-                    height: _popupHeight,
+                    height: _popupHeight+45,
                     decoration: BoxDecoration(
                         color: _backgroundColor,
                         borderRadius: _borderRadius,
@@ -153,23 +156,35 @@ class ShowMoreTextPopup{
                             blurRadius: 1.0,
                           ),
                         ]),
-                    child: ListTile(
-                        leading: Icon(Icons.location_pin, color: Theme.of(context).colorScheme.secondary),
-                        title: Text(_text),
-                        subtitle: Text('Rank: ${_poi.rank}'),
-                        trailing: IconButton(
-                            onPressed: () => {
-                              _toggleFavorite()
-                              //TODO: add favorite to database
-                            },
-                            icon: _isFavorited
-                                ? Icon(Icons.favorite, color: Theme.of(context).colorScheme.secondary)
-                                : Icon(Icons.favorite_border, color: Theme.of(context).colorScheme.secondary)
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget> [
+                        ListTile(
+                          leading: Icon(Icons.location_pin, color: Theme.of(context).colorScheme.secondary),
+                          title: Text(_text),
+                          subtitle: Text('Rank: ${_poi.rank}'),
+                          /*trailing: IconButton(
+                              onPressed: () => {
+                                _toggleFavorite(),
+                                addToFavorites()
+                              },
+                              /*icon: _isFavorited
+                                  ? Icon(Icons.favorite, color: Theme.of(context).colorScheme.secondary)
+                                  : Icon(Icons.favorite_border, color: Theme.of(context).colorScheme.secondary),*/
+                            child: Text(_isFavorited ? 'RIMUOVI DAI SALVATI' : 'AGGIUNGI AI SALVATI')
+                          ),*/
                         ),
-
+                        TextButton(
+                            onPressed: () => {
+                              _toggleFavorite(),
+                              addToFavorites()
+                            },
+                            child: const Text('SALVA')
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              )
             ],
           ),
         ),
@@ -178,7 +193,7 @@ class ShowMoreTextPopup{
   }
 
   void _toggleFavorite() {
-    _isFavorited = !_isFavorited;
+    _isFavorited = true;
   }
 
   /// Dismisses the popup
@@ -189,6 +204,45 @@ class ShowMoreTextPopup{
     _entry.remove();
     _isVisible = false;
     dismissCallback?.call();
+  }
+
+  void addToFavorites() async {
+    final response = await http
+        .post(
+      Uri.parse('http://localhost:3001/me/poi/add'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode({
+        "username": globals.getUsername(),
+        "poi": {
+            "type": _poi.type,
+            "position": {
+              "latitude": _poi.position.coordinates[0],
+              "longitude": _poi.position.coordinates[1]
+            },
+            "rank": _poi.rank,
+            "id": _poi.id
+          }
+      }),
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final pois = await jsonDecode(response.body);
+      dynamic rightPoi;
+      for (var poi in pois['POIs']) {
+        if (poi['id'] == _poi.id) {
+          rightPoi = POI.fromJson(poi);
+        }
+      }
+      if (rightPoi.isEqualTo(_poi)) {
+        developer.log("Poi added to favorites");
+      } else {
+        developer.log("Poi not added to favorites");
+      }
+    } else {
+      throw Exception('Failed to call http request');
+    }
   }
 
 }

@@ -107,31 +107,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
         return const Center(
           child: CircularProgressIndicator(),
         );
-        /*
-        return Scaffold(
-          appBar: AppBar(
-              centerTitle: true,
-              title: Text(category)
-          ),
-          body: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
-                    itemCount: _pois,
-                    scrollDirection: Axis.vertical,
-                    itemBuilder: (_, index) => poiTiles[index],
-                    separatorBuilder: (_, index) => const SizedBox(
-                      height: 5,
-                    ),
-                  ),
-                ),
-              ],
-        )
-        );
-         */
       },
     );
   }

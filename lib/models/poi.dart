@@ -25,4 +25,17 @@ class POI {
       rank: json['rank'],
     );
   }
+
+  bool isEqualTo(POI poi) {
+    return id == poi.id &&
+        name == poi.name &&
+        position.isEqualTo(poi.position) &&
+        type == poi.type &&
+        rank == poi.rank;
+  }
+
+  @override
+  String toString() {
+    return 'POI{id: $id, name: $name, position: ${position.toString()}, type: $type, rank: $rank}';
+  }
 }
