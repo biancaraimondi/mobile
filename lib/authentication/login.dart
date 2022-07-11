@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
@@ -9,6 +8,7 @@ import 'package:mobile/authentication/access_register_button.dart';
 import 'package:mobile/authentication/input_field.dart';
 
 import 'package:mobile/globals.dart' as globals;
+
 
 class SimpleLoginScreen extends StatefulWidget {
   const SimpleLoginScreen({Key? key}) : super(key: key);
@@ -100,11 +100,25 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
 
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         child: ListView(
           children: [
             const Image(image: AssetImage('res/Bologna.jpeg')),
-            SizedBox(height: screenHeight * .12),
+            SizedBox(height: screenHeight * .05),
+            const Text(
+              "Benvenuto!",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: screenHeight * .02),
+            const Text(
+              "Accedi subito con le tue credenziali e scopri nuovi punti d'interesse a Bologna!",
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: screenHeight * .08),
             InputField(
               onChanged: (value) {
                 setState(() {
@@ -130,7 +144,7 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
               textInputAction: TextInputAction.next,
             ),
             SizedBox(
-              height: screenHeight * .075,
+              height: screenHeight * .025,
             ),
             FormButton(
               text: "Accedi",
@@ -140,7 +154,7 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
               }
             ),
             SizedBox(
-              height: screenHeight * .15,
+              height: screenHeight * .05,
             ),
             TextButton(
               onPressed: () => Navigator.push(
