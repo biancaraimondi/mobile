@@ -10,6 +10,7 @@
 */
 
 import 'package:flutter/material.dart';
+
 import 'package:mobile/route_generator.dart';
 
 void main() {
@@ -22,8 +23,7 @@ void main() {
         ),
         textTheme: const TextTheme(bodyText2: TextStyle(color: Colors.black)),
       ),
-      //initialRoute: '/',
-      initialRoute: '/userNavigationBar',
+      initialRoute: '/',
       onGenerateRoute: RouteGenerator.generateRoute,
   ));
 }

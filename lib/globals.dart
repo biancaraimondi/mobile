@@ -1,6 +1,6 @@
 library my_prj.globals;
 
-String username = "mariorossi";
+String username = "";
 
 String getUsername() {
   return username;

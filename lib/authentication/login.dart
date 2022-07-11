@@ -1,20 +1,17 @@
 import 'dart:convert';
-import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
-import 'package:mobile/authentication/registration.dart';
+
 import 'package:http/http.dart' as http;
-import 'package:mobile/main.dart';
+
+import 'package:mobile/authentication/registration.dart';
+import 'package:mobile/authentication/access_register_button.dart';
+import 'package:mobile/authentication/input_field.dart';
+
 import 'package:mobile/globals.dart' as globals;
 
-import '/authentication/access_register_button.dart';
-import '/authentication/input_field.dart';
-
 class SimpleLoginScreen extends StatefulWidget {
-
-  //final Function(String? email, String? password)? onSubmitted;
-
-  const SimpleLoginScreen({/*this.onSubmitted,*/ Key? key}) : super(key: key);
+  const SimpleLoginScreen({Key? key}) : super(key: key);
   @override
   State<SimpleLoginScreen> createState() => _SimpleLoginScreenState();
 }
@@ -23,7 +20,6 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
 
   late String username, password;
   String? usernameError, passwordError;
-  //Function(String? email, String? password)? get onSubmitted => widget.onSubmitted;
 
   @override
   void initState() {
@@ -63,14 +59,6 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
     return isValid;
   }
 
-  /*void submit() {
-    if (validate()) {
-      if (onSubmitted != null) {
-        onSubmitted!(username, password);
-      }
-    }
-  }*/
-
   void setErrorText() {
     resetErrorText();
     setState(() {
@@ -96,8 +84,6 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
             }),
         );
 
-    developer.log(jsonDecode(response.body)['msg'], name: 'LOGIN');
-
     if (response.statusCode >= 200 && response.statusCode < 300) {
       globals.setUsername(username);
       openNavigation();
@@ -117,16 +103,7 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: ListView(
           children: [
-            const Image(image: AssetImage('res/park.jpg')),
-            /*
-            SizedBox(height: screenHeight * .12),
-            const Text(
-              "Welcome,",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),*/
+            const Image(image: AssetImage('res/Bologna.jpeg')),
             SizedBox(height: screenHeight * .12),
             InputField(
               onChanged: (value) {
@@ -147,7 +124,6 @@ class _SimpleLoginScreenState extends State<SimpleLoginScreen> {
                   password = value;
                 });
               },
-              //onSubmitted: (val) => submit(),
               labelText: "Password",
               errorText: passwordError,
               obscureText: true,

@@ -1,18 +1,14 @@
 import 'dart:convert';
-import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
-
-import 'access_register_button.dart';
-import 'input_field.dart';
-
 import 'package:http/http.dart' as http;
+
+import 'package:mobile/authentication/access_register_button.dart';
+import 'package:mobile/authentication/input_field.dart';
 
 class SimpleRegisterScreen extends StatefulWidget {
 
-  //final Function(String? email, String? password)? onSubmitted;
-
-  const SimpleRegisterScreen({/*this.onSubmitted, */Key? key}) : super(key: key);
+  const SimpleRegisterScreen({Key? key}) : super(key: key);
 
   @override
   State<SimpleRegisterScreen> createState() => _SimpleRegisterScreenState();
@@ -21,7 +17,6 @@ class SimpleRegisterScreen extends StatefulWidget {
 class _SimpleRegisterScreenState extends State<SimpleRegisterScreen> {
   late String username, password, confirmPassword;
   String? usernameError, passwordError;
-  //Function(String? email, String? password)? get onSubmitted => widget.onSubmitted;
 
   @override
   void initState() {
@@ -68,14 +63,6 @@ class _SimpleRegisterScreenState extends State<SimpleRegisterScreen> {
     return isValid;
   }
 
-  /*void submit() {
-    if (validate()) {
-      if (onSubmitted != null) {
-        onSubmitted!(username, password);
-      }
-    }
-  }*/
-
   void setErrorText(String error) {
     resetErrorText();
     setState(() {
@@ -100,8 +87,6 @@ class _SimpleRegisterScreenState extends State<SimpleRegisterScreen> {
         'password': password,
       }),
     );
-
-    developer.log(jsonDecode(response.body)['msg'], name: 'SIGNUP');
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       openLoginScreen();
@@ -169,7 +154,6 @@ class _SimpleRegisterScreenState extends State<SimpleRegisterScreen> {
                   confirmPassword = value;
                 });
               },
-              //onSubmitted: (value) => submit(),
               labelText: "Conferma Password",
               errorText: passwordError,
               obscureText: true,

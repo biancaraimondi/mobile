@@ -5,8 +5,7 @@ import 'package:mobile/authentication/registration.dart';
 import 'package:mobile/navigation/saved/user_pois.dart';
 import 'package:mobile/navigation/user_navigation_bar.dart';
 import 'package:mobile/navigation/explore/map.dart';
-
-import 'navigation/saved/category_screen.dart';
+import 'package:mobile/navigation/saved/category_screen.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {

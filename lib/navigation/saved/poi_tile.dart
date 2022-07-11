@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
-import 'dart:developer' as developer;
 import 'package:mobile/navigation/user_navigation_bar.dart';
-import '../../models/poi.dart';
-import '../explore/map.dart';
-import '../explore/popup.dart';
-import 'package:http/http.dart' as http;
+import 'package:mobile/models/poi.dart';
+import 'package:mobile/navigation/explore/map.dart';
+import 'package:mobile/navigation/explore/popup.dart';
 import 'package:mobile/globals.dart' as globals;
+
+import 'package:http/http.dart' as http;
 
 class POITile extends StatefulWidget {
   const POITile({required this.poi, Key? key}) : super(key: key);
@@ -46,7 +46,7 @@ class _POITileState extends State<POITile> {
       default:
         color = Theme.of(context).colorScheme.secondary;
     }
-    //add the poi as a marker to the map
+
     final dynamic explore = exploreKey.currentWidget;
 
     var marker = Marker(
@@ -90,7 +90,6 @@ class _POITileState extends State<POITile> {
         15.5
     );
 
-    //show the map section
     final dynamic bottomBar = bottomBarKey.currentWidget;
     bottomBar.onTap(0);
   }
@@ -101,6 +100,58 @@ class _POITileState extends State<POITile> {
     setState(() {
       _isFavorited = !_isFavorited;
     });
+  }
+
+  void removeFromSaved() async {
+      final response = await http
+          .post(
+        Uri.parse('http://localhost:3001/me/poi/remove'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({
+          "username": globals.getUsername(),
+          "poi": {
+            "type": poi.type,
+            "position": {
+              "latitude": poi.position.coordinates[0],
+              "longitude": poi.position.coordinates[1]
+            },
+            "rank": poi.rank,
+            "id": poi.id
+          }
+        }),
+      );
+
+      if (!(response.statusCode >= 200 && response.statusCode < 300)) {
+        throw Exception('Failed to call http request');
+      }
+  }
+
+  void addToSaved() async {
+    final response = await http
+        .post(
+      Uri.parse('http://localhost:3001/me/poi/add'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode({
+        "username": globals.getUsername(),
+        "poi": {
+          "type": poi.type,
+          "position": {
+            "latitude": poi.position.coordinates[0],
+            "longitude": poi.position.coordinates[1]
+          },
+          "rank": poi.rank,
+          "id": poi.id
+        }
+      }),
+    );
+
+    if (!(response.statusCode >= 200 && response.statusCode < 300)) {
+      throw Exception('Failed to call http request');
+    }
   }
 
   @override
@@ -135,83 +186,5 @@ class _POITileState extends State<POITile> {
           ),
         ),
     );
-  }
-
-  void removeFromSaved() async {
-      final response = await http
-          .post(
-        Uri.parse('http://localhost:3001/me/poi/remove'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode({
-          "username": globals.getUsername(),
-          "poi": {
-            "type": poi.type,
-            "position": {
-              "latitude": poi.position.coordinates[0],
-              "longitude": poi.position.coordinates[1]
-            },
-            "rank": poi.rank,
-            "id": poi.id
-          }
-        }),
-      );
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        final pois = await jsonDecode(response.body);
-        dynamic rightPoi;
-        for (var returnedPoi in pois['POIs']) {
-          if (returnedPoi['id'] == poi.id) {
-            rightPoi = POI.fromJson(returnedPoi);
-          }
-        }
-        if (rightPoi == null) {
-          developer.log("Poi removed from favorites");
-        } else {
-          developer.log("Poi not removed from favorites");
-        }
-      } else {
-        throw Exception('Failed to call http request');
-      }
-  }
-
-  void addToSaved() async {
-    final response = await http
-        .post(
-      Uri.parse('http://localhost:3001/me/poi/add'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode({
-        "username": globals.getUsername(),
-        "poi": {
-          "type": poi.type,
-          "position": {
-            "latitude": poi.position.coordinates[0],
-            "longitude": poi.position.coordinates[1]
-          },
-          "rank": poi.rank,
-          "id": poi.id
-        }
-      }),
-    );
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final pois = await jsonDecode(response.body);
-      dynamic rightPoi;
-      for (var returnedPoi in pois['POIs']) {
-        if (returnedPoi['id'] == poi.id) {
-          rightPoi = POI.fromJson(returnedPoi);
-        }
-      }
-      if (rightPoi.isEqualTo(poi)) {
-        developer.log("Poi added to favorites");
-      } else {
-        developer.log("Poi not added to favorites");
-      }
-    } else {
-      throw Exception('Failed to call http request');
-    }
   }
 }

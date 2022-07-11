@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:mobile/models/position.dart';
 
 class POI {

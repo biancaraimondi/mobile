@@ -3,27 +3,24 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 import 'package:latlong2/latlong.dart';
-import 'dart:developer' as developer;
-import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
+
+import 'package:http/http.dart' as http;
+
 import 'package:mobile/navigation/explore/popup.dart';
+import 'package:mobile/models/poi.dart';
+import 'package:mobile/models/position.dart';
 
-import '../../models/poi.dart';
-import '../../models/position.dart';
-
-//global key for the map
 GlobalKey exploreKey = GlobalKey<NavigatorState>();
 
-//enums for radio buttons filters
 enum CategoryValues { historicalBuilding, park, theater, museum, department }
 extension ParseToStringCategory on CategoryValues {
   String toShortString() {
     return toString().split('.').last;
   }
 }
-enum PrivacyValues { dummyUpdate, GPSPerturbation, noPrivacy}
+enum PrivacyValues { dummy, perturbation, noPrivacy}
 extension ParseToStringPrivacy on PrivacyValues {
   String toShortString() {
     return toString().split('.').last;
@@ -50,7 +47,6 @@ class _ExploreState extends State<Explore> {
   late LocationData _locationData;
   List<Marker> _markers = [];
   late double _zoom;
-  final PopupController _popupLayerController = PopupController();
   bool popupShown = false;
 
   @override
@@ -82,11 +78,40 @@ class _ExploreState extends State<Explore> {
     }
 
     _locationData = await location.getLocation();
-    developer.log("Device position: ${_locationData.latitude}, ${_locationData.longitude}", name: "POSITION");
     location.onLocationChanged.listen((LocationData currentLocation) {
-      developer.log("Device position: ${currentLocation.latitude}, ${currentLocation.longitude}", name: "POSITION");
+
+      _markers.removeWhere((marker) =>
+        marker.builder == (context) => Icon(
+          Icons.my_location_rounded,
+          size: 25.0,
+          color: Theme.of(context).colorScheme.primary,
+        )
+      );
+
       _locationData = currentLocation;
+
+      var latitude = _locationData.latitude;
+      var longitude = _locationData.longitude;
+      var userPositionMarker = Marker(
+        width: 45.0,
+        height: 45.0,
+        point: LatLng(latitude!, longitude!),
+        builder: (context) => Icon(
+            Icons.my_location_rounded,
+            size: 25.0,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+      );
+      _markers.add(userPositionMarker);
+
+      final dynamic explore = exploreKey.currentWidget;
+      explore.mapController.move(
+          LatLng(latitude, longitude),
+          13.5
+      );
+      _zoom = 13.5;
     });
+
     location.enableBackgroundMode(enable: true);
   }
 
@@ -105,7 +130,6 @@ class _ExploreState extends State<Explore> {
       for (var poi in pois) {
         poiList.add(POI.fromJson(poi));
       }
-      developer.log("List of POI returned by server", name: "POIS");
       return setMarkers(poiList, false);
     } else if (response.statusCode >= 400 && response.statusCode < 500) {
       throw Exception('Failed to get pois');
@@ -115,30 +139,52 @@ class _ExploreState extends State<Explore> {
   }
 
   void setFilteredMarkers() async {
-    developer.log("Rank: $_currentRankValue \nCategory: ${_currentCategoryValue?.toShortString() as String} \nLatitude: ${_locationData.latitude} \nLongitude: ${_locationData.longitude}", name: "FILTERS");
+    getLocation();
     var category = _currentCategoryValue?.toShortString() as String;
     if (category == "hystoricalBuilding") {
       category = "hystorical building";
     }
-    final response = await http
-        .post(
-      Uri.parse('http://localhost:3001/poi/optimal'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode({
-                "minRank": _currentRankValue,
-                "type": category,
-                "positions": [
-                  {
-                    "latitude": _locationData.latitude,
-                    "longitude": _locationData.longitude
-                  },
-                ]
-            }),
-    );
+    var privacy = _currentPrivacyValue?.toShortString() as String;
+    dynamic response;
+    if (privacy == "noPrivacy") {
+      response = await http
+          .post(
+        Uri.parse('http://localhost:3001/poi/optimal'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({
+          "minRank": _currentRankValue,
+          "type": category,
+          "positions": [
+            {
+              "latitude": _locationData.latitude,
+              "longitude": _locationData.longitude
+            },
+          ]
+        }),
+      );
+    } else {
+      response = await http
+          .post(
+        Uri.parse('http://localhost:3002/privacy'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({
+                  "position": [
+                    _locationData.latitude,
+                    _locationData.longitude
+                  ],
+                  "privacy": privacy,
+                  "minRank": _currentRankValue,
+                  "type": category,
+                  "dummyOrPerturbationDigits": _currentPrivacyNumber
+              }),
+      );
+    }
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
+    if (await response.statusCode >= 200 && await response.statusCode < 300) {
       final pois = await jsonDecode(response.body);
       dynamic rightPoi;
       for (var poi in pois['items']) {
@@ -161,9 +207,8 @@ class _ExploreState extends State<Explore> {
           rank: rightPoi['rank']
         )
       ];
-      developer.log("Optimal POI returned by server", name: "POIS");
       return setMarkers(poiList, true);
-    } else if (response.statusCode >= 400 && response.statusCode < 500) {
+    } else if (await response.statusCode >= 400 && await response.statusCode < 500) {
       throw Exception('Failed to get pois');
     } else {
       throw Exception('Failed to call http request');
@@ -172,6 +217,7 @@ class _ExploreState extends State<Explore> {
 
   void setMarkers(List<POI> pois, bool withFilters) async {
     //historicalBuilding, park, theater, museum, department
+
     for (var poi in pois) {
       Color color;
       switch (poi.type){
@@ -234,7 +280,6 @@ class _ExploreState extends State<Explore> {
 
       if (!_markers.contains(marker)) {
         _markers.add(marker);
-        developer.log("Marker added to map", name: "MARKERS");
       }
 
 
@@ -268,12 +313,6 @@ class _ExploreState extends State<Explore> {
                   zoom: _zoom,
                   maxZoom: 18,
                   minZoom: 13,
-                  /*
-                  bounds: LatLngBounds(
-                    southwest: LatLng(44.4988203, 11.3426327),
-                    northeast: LatLng(44.4988203, 11.3426327),
-                  ),
-                  */
                 ),
                 layers: [
                   TileLayerOptions(
@@ -360,7 +399,6 @@ class _ExploreState extends State<Explore> {
                                           activeColor: Theme.of(context).colorScheme.secondary,
                                           onChanged: (CategoryValues? value) {
                                             state(() {
-                                              developer.log(value.toString());
                                               _currentCategoryValue = value;
                                             });
                                           },
@@ -375,7 +413,6 @@ class _ExploreState extends State<Explore> {
                                             activeColor: Theme.of(context).colorScheme.secondary,
                                             onChanged: (CategoryValues? value) {
                                                 state(() {
-                                                    developer.log(value.toString());
                                                     _currentCategoryValue = value;
                                                 });
                                             },
@@ -444,7 +481,7 @@ class _ExploreState extends State<Explore> {
                                             ListTile(
                                               title: const Text('Dummy Update'),
                                               leading: Radio<PrivacyValues>(
-                                                value: PrivacyValues.dummyUpdate,
+                                                value: PrivacyValues.dummy,
                                                 groupValue: _currentPrivacyValue,
                                                 toggleable: true,
                                                 activeColor: Theme.of(context).colorScheme.secondary,
@@ -477,7 +514,7 @@ class _ExploreState extends State<Explore> {
                                             ListTile(
                                               title: const Text('GPS Perturbation'),
                                               leading: Radio<PrivacyValues>(
-                                                value: PrivacyValues.GPSPerturbation,
+                                                value: PrivacyValues.perturbation,
                                                 groupValue: _currentPrivacyValue,
                                                 toggleable: true,
                                                 activeColor: Theme.of(context).colorScheme.secondary,
@@ -545,7 +582,8 @@ class _ExploreState extends State<Explore> {
                 child: FloatingActionButton.extended(
                   heroTag: "search",
                   onPressed: () {
-                    if (_currentCategoryValue == null || _currentPrivacyValue == null) {
+                    if (_currentCategoryValue == null || _currentPrivacyValue == null
+                        || (_currentPrivacyValue != PrivacyValues.noPrivacy && _currentPrivacyNumber == null)) {
                       showDialog<String>(
                           context: context,
                           builder: (BuildContext context) => AlertDialog(
@@ -580,7 +618,6 @@ class _ExploreState extends State<Explore> {
                               _markers[0].point.longitude),
                           --_zoom
                       );
-                      developer.log("Zoom Out: $_zoom", name: "ZOOM");
                     }
                   },
                   backgroundColor: Theme.of(context).colorScheme.secondary,
@@ -599,7 +636,6 @@ class _ExploreState extends State<Explore> {
                               _markers[0].point.longitude),
                           ++_zoom
                       );
-                      developer.log("Zoom In: $_zoom", name: "ZOOM");
                     }
                   },
                   backgroundColor: Theme.of(context).colorScheme.secondary,

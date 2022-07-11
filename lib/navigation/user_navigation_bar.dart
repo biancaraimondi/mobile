@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+
 import 'package:mobile/navigation/saved/user_pois.dart';
 import 'package:mobile/navigation/explore/map.dart';
-
-import '../route_generator.dart';
+import 'package:mobile/route_generator.dart';
 
 GlobalKey bottomBarKey = GlobalKey<NavigatorState>();
 

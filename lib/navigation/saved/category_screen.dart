@@ -2,12 +2,11 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
-import '../../models/poi.dart';
-import 'poi_tile.dart';
-import 'package:http/http.dart' as http;
-import 'dart:developer' as developer;
+import 'package:mobile/models/poi.dart';
+import 'package:mobile/navigation/saved/poi_tile.dart';
 import 'package:mobile/globals.dart' as globals;
 
+import 'package:http/http.dart' as http;
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({required this.category, Key? key}) : super(key: key);
@@ -17,59 +16,58 @@ class CategoryScreen extends StatefulWidget {
   State<CategoryScreen> createState() => _CategoryScreenState();
 }
 
-Future<List<POITile>> getSavedPois(String username, String category) async {
-  final response = await http
-      .get(
-    Uri.parse('http://localhost:3001/me/poi/$username'),
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-    },
-  );
-
-  if (response.statusCode >= 200 && response.statusCode < 300) {
-    final pois = await jsonDecode(response.body);
-    List<POI> poiList = [];
-    for (var poi in pois['POIs']) {
-      poiList.add(POI.fromJson(poi));
-    }
-    developer.log("List of POI returned by server", name: "POIS");
-    switch (category){
-      case "edifici storici":
-        category = "historical building";
-        break;
-      case "parchi":
-        category = "park";
-        break;
-      case "teatri":
-        category = "theater";
-        break;
-      case "musei":
-        category = "museum";
-        break;
-      case "dipartimenti":
-        category = "department";
-        break;
-      default:
-        category = "error";
-        break;
-    }
-    
-    poiList = poiList.where((p) => p.type == category).toList();
-    return poiList.map((p) => POITile(poi: p)).toList();
-  } else {
-    throw Exception('Failed to call http request');
-  }
-}
 
 class _CategoryScreenState extends State<CategoryScreen> {
+
   final username = globals.getUsername();
   String get category => widget.category;
-  //late Future<List<POITile>> _pois;
 
   @override
   void initState() {
     super.initState();
-    //_pois = getSavedPois(username, category);
+  }
+
+  Future<List<POITile>> getSavedPois(String username, String category) async {
+    final response = await http
+        .get(
+      Uri.parse('http://localhost:3001/me/poi/$username'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final pois = await jsonDecode(response.body);
+      List<POI> poiList = [];
+      for (var poi in pois['POIs']) {
+        poiList.add(POI.fromJson(poi));
+      }
+      switch (category){
+        case "edifici storici":
+          category = "historical building";
+          break;
+        case "parchi":
+          category = "park";
+          break;
+        case "teatri":
+          category = "theater";
+          break;
+        case "musei":
+          category = "museum";
+          break;
+        case "dipartimenti":
+          category = "department";
+          break;
+        default:
+          category = "error";
+          break;
+      }
+
+      poiList = poiList.where((p) => p.type == category).toList();
+      return poiList.map((p) => POITile(poi: p)).toList();
+    } else {
+      throw Exception('Failed to call http request');
+    }
   }
 
   @override
@@ -81,7 +79,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
           return Scaffold(
               appBar: AppBar(
                   centerTitle: true,
-                  title: Text(category)
+                  title: Text(category.toUpperCase())
               ),
               body: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,

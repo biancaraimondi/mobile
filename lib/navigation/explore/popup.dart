@@ -3,37 +3,28 @@ import 'dart:core';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'dart:developer' as developer;
-import 'package:http/http.dart' as http;
 
-import '../../models/poi.dart';
+import 'package:mobile/models/poi.dart';
 import 'package:mobile/globals.dart' as globals;
+
+import 'package:http/http.dart' as http;
 
 class ShowMoreTextPopup{
   late double _popupWidth;
   late double _popupHeight;
-
   double arrowHeight = 10.0;
   bool _isDownArrow = true;
-
   bool _isVisible = false;
-
   late String _text;
-
   late OverlayEntry _entry;
   late Offset _offset;
   late Rect _showRect;
-
   VoidCallback? dismissCallback;
-
   late Size _screenSize;
-
   BuildContext context;
   late Color _backgroundColor;
-
   late BorderRadius _borderRadius;
   late EdgeInsetsGeometry _padding;
-  bool _isFavorited = false;
   late POI _poi;
 
   ShowMoreTextPopup(this.context,
@@ -59,7 +50,6 @@ class ShowMoreTextPopup{
   /// Shows a popup near a widget with key [widgetKey] or [rect].
   void show({Rect? rect, GlobalKey? widgetKey}) {
     if (rect == null && widgetKey == null) {
-      developer.log("both 'rect' and 'key' can't be null");
       return;
     }
 
@@ -102,7 +92,6 @@ class ShowMoreTextPopup{
 
     double dy = _showRect.top - _popupHeight;
     if (dy <= MediaQuery.of(context).padding.top + 10) {
-      // not enough space above, show popup under the widget.
       dy = arrowHeight + _showRect.height + _showRect.top;
       _isDownArrow = false;
     } else {
@@ -125,7 +114,6 @@ class ShowMoreTextPopup{
           color: Colors.transparent,
           child: Stack(
             children: <Widget>[
-              // triangle arrow
               Positioned(
                 left: _showRect.left + _showRect.width / 2.0 + 6,
                 top: _isDownArrow
@@ -163,20 +151,9 @@ class ShowMoreTextPopup{
                           leading: Icon(Icons.location_pin, color: Theme.of(context).colorScheme.secondary),
                           title: Text(_text),
                           subtitle: Text('Rank: ${_poi.rank}'),
-                          /*trailing: IconButton(
-                              onPressed: () => {
-                                _toggleFavorite(),
-                                addToFavorites()
-                              },
-                              /*icon: _isFavorited
-                                  ? Icon(Icons.favorite, color: Theme.of(context).colorScheme.secondary)
-                                  : Icon(Icons.favorite_border, color: Theme.of(context).colorScheme.secondary),*/
-                            child: Text(_isFavorited ? 'RIMUOVI DAI SALVATI' : 'AGGIUNGI AI SALVATI')
-                          ),*/
                         ),
                         TextButton(
                             onPressed: () => {
-                              _toggleFavorite(),
                               addToFavorites()
                             },
                             child: const Text('SALVA')
@@ -190,10 +167,6 @@ class ShowMoreTextPopup{
         ),
       );
     });
-  }
-
-  void _toggleFavorite() {
-    _isFavorited = true;
   }
 
   /// Dismisses the popup
@@ -227,20 +200,7 @@ class ShowMoreTextPopup{
       }),
     );
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final pois = await jsonDecode(response.body);
-      dynamic rightPoi;
-      for (var poi in pois['POIs']) {
-        if (poi['id'] == _poi.id) {
-          rightPoi = POI.fromJson(poi);
-        }
-      }
-      if (rightPoi.isEqualTo(_poi)) {
-        developer.log("Poi added to favorites");
-      } else {
-        developer.log("Poi not added to favorites");
-      }
-    } else {
+    if (!(response.statusCode >= 200 && response.statusCode < 300)) {
       throw Exception('Failed to call http request');
     }
   }
@@ -258,8 +218,8 @@ class TrianglePainter extends CustomPainter {
   /// Draws the triangle of specific [size] on [canvas]
   @override
   void paint(Canvas canvas, Size size) {
-    Path path = new Path();
-    Paint paint = new Paint();
+    Path path = Path();
+    Paint paint = Paint();
     paint.strokeWidth = 2.0;
     paint.color = color;
     paint.style = PaintingStyle.fill;
