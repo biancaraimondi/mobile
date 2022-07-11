@@ -139,50 +139,30 @@ class _ExploreState extends State<Explore> {
   }
 
   void setFilteredMarkers() async {
-    getLocation();
+    await getLocation();
     var category = _currentCategoryValue?.toShortString() as String;
     if (category == "hystoricalBuilding") {
       category = "hystorical building";
     }
     var privacy = _currentPrivacyValue?.toShortString() as String;
     dynamic response;
-    if (privacy == "noPrivacy") {
-      response = await http
-          .post(
-        Uri.parse('http://localhost:3001/poi/optimal'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode({
-          "minRank": _currentRankValue,
-          "type": category,
-          "positions": [
-            {
-              "latitude": _locationData.latitude,
-              "longitude": _locationData.longitude
-            },
-          ]
-        }),
-      );
-    } else {
-      response = await http
-          .post(
-        Uri.parse('http://localhost:3002/privacy'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode({
-                  "position": [
-                    _locationData.latitude,
-                    _locationData.longitude
-                  ],
-                  "privacy": privacy,
-                  "minRank": _currentRankValue,
-                  "type": category,
-                  "dummyOrPerturbationDigits": _currentPrivacyNumber
-              }),
-      );
-    }
+    response = await http
+        .post(
+      Uri.parse('http://localhost:3002/privacy'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode({
+                "position": [
+                  _locationData.latitude,
+                  _locationData.longitude
+                ],
+                "privacy": privacy,
+                "minRank": _currentRankValue,
+                "type": category,
+                "dummyOrPerturbationDigits": _currentPrivacyNumber
+            }),
+    );
 
     if (await response.statusCode >= 200 && await response.statusCode < 300) {
       final pois = await jsonDecode(response.body);
