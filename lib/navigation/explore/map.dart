@@ -126,6 +126,11 @@ class _ExploreState extends State<Explore> {
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final pois = await jsonDecode(response.body);
+
+      if (pois[0] == null) {
+        return;
+      }
+
       List<POI> poiList = [];
       for (var poi in pois) {
         poiList.add(POI.fromJson(poi));
@@ -139,10 +144,9 @@ class _ExploreState extends State<Explore> {
   }
 
   void setFilteredMarkers() async {
-    await getLocation();
     var category = _currentCategoryValue?.toShortString() as String;
-    if (category == "hystoricalBuilding") {
-      category = "hystorical building";
+    if (category == "historicalBuilding") {
+      category = "historical building";
     }
     var privacy = _currentPrivacyValue?.toShortString() as String;
     dynamic response;
@@ -166,25 +170,59 @@ class _ExploreState extends State<Explore> {
 
     if (await response.statusCode >= 200 && await response.statusCode < 300) {
       final pois = await jsonDecode(response.body);
-      dynamic rightPoi;
-      for (var poi in pois['items']) {
-        if (poi['position']['latitude'] == _locationData.latitude && poi['position']['longitude'] == _locationData.longitude) {
-          rightPoi = poi['poi'];
-        }
+
+      if (pois['items'][0] == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Nessun Optimal POI trovato'),
+            action: SnackBarAction(
+              label: 'OK',
+              onPressed: () {
+              },
+            ),
+          ),
+        );
+        return;
       }
+      var returnedPoi = pois['items'][0]['poi'];
+
+      var duration = (pois['items'][0]['duration'] / 60).round();
+      var snackbarString = 'Tempo: $duration min';
+      dynamic distance;
+      if (pois['items'][0]['distance'] > 1000) {
+        distance = (pois['items'][0]['distance'] / 1000).round();
+        snackbarString += '\nDistanza: $distance km';
+        distance = (pois['items'][0]['distance'] - 1000).round();
+        snackbarString += ' $distance m';
+      } else {
+        distance = (pois['items'][0]['distance']).round();
+        snackbarString += '\nDistanza: $distance m';
+      }
+
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(snackbarString),
+          action: SnackBarAction(
+            label: 'OK',
+            onPressed: () {
+            },
+          ),
+        ),
+      );
 
       List<POI> poiList = [
         POI(
           id: 1,
-          name: rightPoi['name'],
+          name: returnedPoi['name'],
           position: Position(
               type: 'Point',
               coordinates: [
-                rightPoi['position']['latitude'],
-                rightPoi['position']['longitude']
+                returnedPoi['position']['latitude'],
+                returnedPoi['position']['longitude']
               ]),
-          type: rightPoi['type'],
-          rank: rightPoi['rank']
+          type: returnedPoi['type'],
+          rank: returnedPoi['rank']
         )
       ];
       return setMarkers(poiList, true);
@@ -516,11 +554,16 @@ class _ExploreState extends State<Explore> {
                                                       FilteringTextInputFormatter.digitsOnly
                                                     ],
                                                     onChanged: (text) {
-                                                      _currentPrivacyNumber = int.parse(text);
+                                                      if (text != "") {
+                                                        _currentPrivacyNumber = (int.parse(text) < 4)?4:int.parse(text);
+                                                      } else {
+                                                        _currentPrivacyNumber = 4;
+                                                      }
                                                     },
                                                     decoration: const InputDecoration(
                                                       border: OutlineInputBorder(),
                                                       labelText: 'Numero di perturbation digits',
+                                                      errorText: 'Inserisci un numero maggiore di 3',
                                                     ),
                                                   )
                                               ),
