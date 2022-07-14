@@ -1,4 +1,5 @@
 import 'dart:convert';
+// import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -177,39 +178,50 @@ class _ExploreState extends State<Explore> {
             content: const Text('Nessun Optimal POI trovato'),
             action: SnackBarAction(
               label: 'OK',
-              onPressed: () {
-              },
+              onPressed: () {},
             ),
           ),
         );
         return;
       }
-      var returnedPoi = pois['items'][0]['poi'];
 
-      var duration = (pois['items'][0]['duration'] / 60).round();
-      var snackbarString = 'Tempo: $duration min';
-      dynamic distance;
-      if (pois['items'][0]['distance'] > 1000) {
-        distance = (pois['items'][0]['distance'] / 1000).round();
-        snackbarString += '\nDistanza: $distance km';
-        distance = (pois['items'][0]['distance'] - 1000).round();
-        snackbarString += ' $distance m';
-      } else {
-        distance = (pois['items'][0]['distance']).round();
-        snackbarString += '\nDistanza: $distance m';
+      if (pois['items'][0]['duration'] != null && pois['items'][0]['duration'] != null) {
+        var snackbarString = "";
+        dynamic duration;
+        if (pois['items'][0]['duration'] > 3600) {
+          duration = (pois['items'][0]['duration'] / 3600).round();
+          snackbarString += 'Tempo: $duration h';
+          duration = (pois['items'][0]['duration'] % 3600 / 60).round();
+          snackbarString += ' $duration min';
+        } else {
+          duration = (pois['items'][0]['duration']/60).round();
+          snackbarString += 'Tempo: $duration min';
+        }
+
+        dynamic distance;
+        if (pois['items'][0]['distance'] > 1000) {
+          distance = (pois['items'][0]['distance'] / 1000).round();
+          snackbarString += '\nDistanza: $distance km';
+          distance = (pois['items'][0]['distance']  % 1000).round();
+          snackbarString += ' $distance m';
+        } else {
+          distance = (pois['items'][0]['distance']).round();
+          snackbarString += '\nDistanza: $distance m';
+        }
+
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(snackbarString),
+            action: SnackBarAction(
+              label: 'OK',
+              onPressed: () {},
+            ),
+          ),
+        );
       }
 
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(snackbarString),
-          action: SnackBarAction(
-            label: 'OK',
-            onPressed: () {
-            },
-          ),
-        ),
-      );
+      var returnedPoi = pois['items'][0]['poi'];
 
       List<POI> poiList = [
         POI(
@@ -521,7 +533,9 @@ class _ExploreState extends State<Explore> {
                                                       FilteringTextInputFormatter.digitsOnly
                                                     ],
                                                     onChanged: (text) {
-                                                      _currentPrivacyNumber = int.parse(text);
+                                                      state(() {
+                                                        _currentPrivacyNumber = int.parse(text);
+                                                      });
                                                     },
                                                     decoration: const InputDecoration(
                                                       border: OutlineInputBorder(),
@@ -555,15 +569,19 @@ class _ExploreState extends State<Explore> {
                                                     ],
                                                     onChanged: (text) {
                                                       if (text != "") {
-                                                        _currentPrivacyNumber = (int.parse(text) < 4)?4:int.parse(text);
+                                                        state(() {
+                                                          _currentPrivacyNumber = int.parse(text);
+                                                        });
                                                       } else {
-                                                        _currentPrivacyNumber = 4;
+                                                        state(() {
+                                                          _currentPrivacyNumber = 4;
+                                                        });
                                                       }
                                                     },
                                                     decoration: const InputDecoration(
                                                       border: OutlineInputBorder(),
                                                       labelText: 'Numero di perturbation digits',
-                                                      errorText: 'Inserisci un numero maggiore di 3',
+                                                      //errorText: 'Inserisci un numero maggiore di 3',
                                                     ),
                                                   )
                                               ),
